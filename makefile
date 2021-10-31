@@ -6,7 +6,7 @@ all: main
 clean:
 	- rm -f *.o  main
 
-COMMON =  ./src/args.c ./src/buffer.c ./src/hello.c ./src/netutils.c ./src/parser.c ./src/parser_utils.c ./src/request.c ./src/selector.c ./src/stm.c
+COMMON =  ./src/args.c ./src/buffer.c ./src/hello.c ./src/logger.c ./src/netutils.c ./src/parser.c ./src/parser_utils.c ./src/request.c ./src/selector.c ./src/stm.c
 main:
 	$(COMPILER) $(CFLAGS) -o main ./main.c $(COMMON) $(LIBS)
 
