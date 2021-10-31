@@ -1,6 +1,6 @@
 .PHONY : all clean test cleanTest server
 COMPILER=gcc
-CFLAGS = --std=c11 -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L
+CFLAGS = --std=c11 -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L -L /lib64 -l pthread
 all: main
 clean:
 	- rm -f *.o  server
