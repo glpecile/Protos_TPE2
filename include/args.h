@@ -39,5 +39,14 @@ struct socks5args {
 void 
 parse_args(const int argc, char **argv, struct socks5args *args);
 
+void
+print_args(struct socks5args *args);
+
+void
+print_doh(struct doh *doh);
+
+void
+print_user(struct users *user);
+
 #endif
 

@@ -166,3 +166,26 @@ parse_args(const int argc, char **argv, struct socks5args *args) {
         exit(1);
     }
 }
+
+void
+print_args(struct socks5args *args) {
+    printf("Socks addr: %s\n", args->socks_addr);
+    printf("Socks port: %d\n", args->socks_port);
+    printf("Mng addr: %s\n", args->mng_addr);
+    printf("Mng port: %d\n", args->mng_port);
+    printf("Disectors enabled: %d\n", args->disectors_enabled);
+}
+
+void
+print_doh(struct doh *doh) {
+    printf("Host: %s\n", doh->host);
+    printf("IP: %s\n", doh->ip);
+    printf("Port: %d\n", doh->port);
+    printf("Path: %s\n", doh->path);
+    printf("Query: %s\n", doh->query);
+}
+
+void
+print_user(struct users *user) {
+    printf("User: %s\n", user->name);
+}
