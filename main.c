@@ -26,7 +26,6 @@
 
 #include "./include/selector.h"
 #include "./include/args.h"
-#include "./include/socks5nio.h"
 
 #define PENDING_CONNECTIONS 20
 static bool done = false;
@@ -110,12 +109,15 @@ main(const int argc, char **argv) {
     }
 
     /**
-     * Registrar sigterm es útil para terminar el programa normlalmente.
+     * Registrar sigterm es útil para terminar el programa normalmente.
      * Esto ayuda mucho en herramientas como valgrind.
      */
     signal(SIGTERM, sigterm_handler);
     signal(SIGINT, sigterm_handler);
 
+    /**
+     * SELECTOR
+     */
     if (selector_fd_set_nio(server_ipv6) == -1) {
         err_msg = "getting server socket flags";
         goto finally;
@@ -138,13 +140,12 @@ main(const int argc, char **argv) {
         err_msg = "unable to create selector";
         goto finally;
     }
-    const struct fd_handler socksv5 = {
-            .handle_read       = socksv5_passive_accept,
+    const struct fd_handler socks_handler = {
+            .handle_read       = socks_passive_accept,
             .handle_write      = NULL,
             .handle_close      = NULL, // nada que liberar
     };
-    ss = selector_register(selector, server_ipv6, &socksv5,
-                           OP_READ, NULL);
+    ss = selector_register(selector, server_ipv6, &socks_handler, OP_READ, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
@@ -182,10 +183,13 @@ main(const int argc, char **argv) {
     }
     selector_close();
 
-    socksv5_pool_destroy();
+//    socksv5_pool_destroy();
 
     if (server_ipv6 >= 0) {
         close(server_ipv6);
+    }
+    if (server_ipv4 >= 0) {
+        close(server_ipv4);
     }
     return ret;
 }
