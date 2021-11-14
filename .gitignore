@@ -9,3 +9,5 @@ CMakeLists.txt
 main
 
 tests
+
+.bash_history
