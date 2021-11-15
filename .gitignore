@@ -8,3 +8,5 @@ cmake-build-default
 main
 
 tests
+
+.bash_history
