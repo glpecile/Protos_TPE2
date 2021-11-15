@@ -81,7 +81,7 @@ static struct sock_state * socks_new(int client_fd){
         goto finally;
     }
 
-    //Setear todo en cero, ya sea por un malloc, o por reutilizar uno existente
+    //Setear en cero, ya sea por un malloc, o por reutilizar uno existente
     memset(to_return, 0x00, sizeof(struct sock_state *));
     
     //inicializacion de la estructura
