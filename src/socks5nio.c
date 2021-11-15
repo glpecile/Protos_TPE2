@@ -70,7 +70,7 @@ struct hello_st {
 };
 
 
-/*
+/*      
  * Si bien cada estado tiene su propio struct que le da un alcance
  * acotado, disponemos de la siguiente estructura para hacer una única
  * alocación cuando recibimos la conexión.
