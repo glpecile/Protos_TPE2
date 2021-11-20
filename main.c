@@ -14,19 +14,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <limits.h>
+
 #include <errno.h>
 #include <signal.h>
 
 #include <unistd.h>
-#include <sys/types.h>   // socket
+
 #include <sys/socket.h>  // socket
 #include <netinet/in.h>
-#include <netinet/tcp.h>
+
 
 #include "./include/selector.h"
 #include "./include/args.h"
-
+#include "./include/buffer.h"
+#include "./include/socks_nio.h"
 #define PENDING_CONNECTIONS 20
 static bool done = false;
 
@@ -116,7 +117,7 @@ main(const int argc, char **argv) {
     signal(SIGINT, sigterm_handler);
 
     /**
-     * SELECTOR
+     * SELECTOR TODO setear tambien el de ipv4
      */
     if (selector_fd_set_nio(server_ipv6) == -1) {
         err_msg = "getting server socket flags";
@@ -183,7 +184,7 @@ main(const int argc, char **argv) {
     }
     selector_close();
 
-//    socksv5_pool_destroy();
+    socks_pool_destroy();
 
     if (server_ipv6 >= 0) {
         close(server_ipv6);

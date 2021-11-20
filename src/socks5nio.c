@@ -272,7 +272,7 @@ hello_process(const struct hello_st *d) {
 }
 
 /** definición de handlers para cada estado */
-static const struct state_definition client_statbl[] = {
+static const struct state_definition client_state[] = {
         {
                 .state            = HELLO_READ,
                 .on_arrival       = hello_read_init,
