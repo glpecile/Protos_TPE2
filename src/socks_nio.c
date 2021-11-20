@@ -23,14 +23,14 @@
 static unsigned pool_size = 0;
 static struct sock *pool = NULL;
 
-static const struct state_definition * get_client_states();
+static const struct state_definition *get_client_states();
 
 static struct sock *socks_new(int client_fd) {
     struct sock *to_return;
 
     if (pool == NULL) {
         //espacio de memoria nuevo
-        to_return = malloc(sizeof(struct sock *));
+        to_return = malloc(sizeof(struct sock));
     } else {
         //reutilizacion de espacio
         to_return = pool;
@@ -65,7 +65,7 @@ static struct sock *socks_new(int client_fd) {
 
     to_return->references = 1;
 
-finally:
+    finally:
     return to_return;
 
 }
@@ -133,13 +133,13 @@ socks_passive_accept(struct selector_key *key) {
     // tenemos el nuevo socket non blocking
     state = socks_new(client);
 
-    if(state == NULL){
+    if (state == NULL) {
         goto fail;
     }
     // Como se creo bien el estado y la conexion se pudo efectuar, le paso los datos del cliente al estado.
     memcpy(&state->client_addr, &client_addr, client_addr_len);
 
-    if( selector_register(key->s, client,  &handler, OP_WRITE, state) != SELECTOR_SUCCESS) {
+    if (selector_register(key->s, client, &handler, OP_WRITE, state) != SELECTOR_SUCCESS) {
         goto fail;
     }
 
@@ -161,13 +161,20 @@ static const struct state_definition client_states[] = {
                 .state            = HELLO_READ,
                 .on_arrival       = hello_read_init,
                 .on_read_ready    = hello_read,
-        },{
+        },
+        {
                 .state            = HELLO_WRITE,
                 .on_write_ready   = hello_write,
+        },
+        {
+                .state = DONE,
+        },
+        {
+                .state = ERROR,
         }
 };
 
-static const struct state_definition * get_client_states() {
+static const struct state_definition *get_client_states() {
     return client_states;
 }
 

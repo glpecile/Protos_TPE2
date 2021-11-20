@@ -83,35 +83,35 @@ main(const int argc, char **argv) {
         goto finally;
     }
 
-    /**
-     * Creamos el socket para IPv4
-     */
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(sock_args->socks_port);
-
-    server_ipv4 = socket(addr.sin_family, SOCK_STREAM, IPPROTO_TCP);
-    if (server_ipv4 < 0) {
-        err_msg = "Unable to create socket ipv4";
-        goto finally;
-    }
-
-    fprintf(stdout, "Listening on TCP port %d\n", sock_args->socks_port);
-
-    // man 7 ip. no importa reportar nada si falla.
-    setsockopt(server_ipv4, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
-
-    if (bind(server_ipv4, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
-        err_msg = "unable to bind socket ipv4";
-        goto finally;
-    }
-
-    if (listen(server_ipv4, PENDING_CONNECTIONS) < 0) {
-        err_msg = "unable to listen ipv4";
-        goto finally;
-    }
+//    /**
+//     * Creamos el socket para IPv4
+//     */
+//    struct sockaddr_in addr;
+//    memset(&addr, 0, sizeof(addr));
+//    addr.sin_family = AF_INET;
+//    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+//    addr.sin_port = htons(sock_args->socks_port);
+//
+//    server_ipv4 = socket(addr.sin_family, SOCK_STREAM, IPPROTO_TCP);
+//    if (server_ipv4 < 0) {
+//        err_msg = "Unable to create socket ipv4";
+//        goto finally;
+//    }
+//
+//    fprintf(stdout, "Listening on TCP port %d\n", sock_args->socks_port);
+//
+//    // man 7 ip. no importa reportar nada si falla.
+//    setsockopt(server_ipv4, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
+//
+//    if (bind(server_ipv4, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+//        err_msg = "unable to bind socket ipv4";
+//        goto finally;
+//    }
+//
+//    if (listen(server_ipv4, PENDING_CONNECTIONS) < 0) {
+//        err_msg = "unable to listen ipv4";
+//        goto finally;
+//    }
 
     /**
      * Registrar sigterm es útil para terminar el programa normalmente.
@@ -123,7 +123,7 @@ main(const int argc, char **argv) {
     /**
      * SELECTOR TODO setear tambien el de ipv4
      */
-    if (selector_fd_set_nio(server_ipv4) == -1) {
+    if (selector_fd_set_nio(server_ipv6) == -1) {
         err_msg = "getting server socket flags";
         goto finally;
     }
@@ -150,7 +150,7 @@ main(const int argc, char **argv) {
             .handle_write      = NULL,
             .handle_close      = NULL, // nada que liberar
     };
-    ss = selector_register(selector, server_ipv4, &socks_handler, OP_READ, NULL);
+    ss = selector_register(selector, server_ipv6, &socks_handler, OP_READ, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
