@@ -1,6 +1,8 @@
 #ifndef PROTOS_TP2E_HELLO_EVENTS_H
 #define PROTOS_TP2E_HELLO_EVENTS_H
 
+#include "./selector.h"
+
 /**
  * Definición de variables para cada estado
  */
@@ -16,7 +18,7 @@ struct hello_st {
 
 void hello_read_init(const unsigned state, struct selector_key *key);
 
-unsigned hello_read(struct selector_key *key)
+unsigned hello_read(struct selector_key *key);
 
 unsigned hello_write(struct selector_key *key);
 

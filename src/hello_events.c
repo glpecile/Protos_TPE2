@@ -1,7 +1,6 @@
 
 #include "../include/hello.h"
 #include "../include/hello_events.h"
-#include "../include/selector.h"
 #include "../include/socks_nio.h"
 
 /**

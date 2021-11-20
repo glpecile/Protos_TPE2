@@ -11,7 +11,7 @@
 #include "../include/socks_nio.h"
 #include "../include/stm.h"
 
-#define MAX_POOL 89; // numero primo y pertenece a la secuencia de fibonacci.
+#define MAX_POOL 89 // numero primo y pertenece a la secuencia de fibonacci.
 
 /*
     Pool de estructuras de socks inutilizadas (se aloco memoria pero no tienen uso)
