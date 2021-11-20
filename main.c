@@ -172,6 +172,7 @@ main(const int argc, char **argv) {
      * Finally
      */
     finally:
+    printf("getting inside finally\n");
     if (ss != SELECTOR_SUCCESS) {
         fprintf(stderr, "%s: %s\n", (err_msg == NULL) ? "" : err_msg,
                 ss == SELECTOR_IO
@@ -185,15 +186,20 @@ main(const int argc, char **argv) {
     if (selector != NULL) {
         selector_destroy(selector);
     }
+    printf("about to close the selector\n");
     selector_close();
-
+    printf("about to destroy the pool\n");
     socks_pool_destroy();
 
     if (server_ipv6 >= 0) {
+        printf("about to close the server_ipv6\n");
         close(server_ipv6);
     }
     if (server_ipv4 >= 0) {
+        printf("about to close the server_ipv4\n");
         close(server_ipv4);
     }
+    free(sock_args);
+    printf("closing main safely...\n");
     return ret;
 }
