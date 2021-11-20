@@ -56,13 +56,13 @@ main(const int argc, char **argv) {
     /**
      * Creamos el socket para IPv6
      */
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET6;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(sock_args->socks_port);
+    struct sockaddr_in6 addr6;
+    memset(&addr6, 0, sizeof(addr6));
+    addr6.sin6_family = AF_INET6;
+    addr6.sin6_addr = in6addr_any;
+    addr6.sin6_port = htons(sock_args->socks_port);
 
-    server_ipv6 = socket(addr.sin_family, SOCK_STREAM, IPPROTO_TCP);
+    server_ipv6 = socket(addr6.sin6_family, SOCK_STREAM, IPPROTO_TCP);
     if (server_ipv6 < 0) {
         err_msg = "Unable to create socket ipv6";
         goto finally;
@@ -73,7 +73,7 @@ main(const int argc, char **argv) {
     // man 7 ip. no importa reportar nada si falla.
     setsockopt(server_ipv6, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
 
-    if (bind(server_ipv6, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+    if (bind(server_ipv6, (struct sockaddr *) &addr6, sizeof(addr6)) < 0) {
         err_msg = "unable to bind socket ipv6";
         goto finally;
     }
@@ -86,6 +86,7 @@ main(const int argc, char **argv) {
     /**
      * Creamos el socket para IPv4
      */
+    struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
