@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -52,7 +53,7 @@ static struct sock *socks_new(int client_fd) {
     to_return->origin_fd = -1;
 
     // Seteo de la maquina de estados
-    to_return->stm.initial = HELLO_READ;
+    to_return->stm.initial = CONNECTING;
     to_return->stm.max_state = DONE;
     to_return->stm.states = get_client_states();
 
@@ -142,7 +143,7 @@ socks_passive_accept(struct selector_key *key) {
     if (selector_register(key->s, client, &handler, OP_WRITE, state) != SELECTOR_SUCCESS) {
         goto fail;
     }
-
+    fprintf(stdout, "New connection with client %d established", state->client_fd);
     return;
 
     fail:
@@ -156,15 +157,33 @@ socks_passive_accept(struct selector_key *key) {
 /**
  * Definición de handlers para cada estado.
 */
+//static const struct state_definition client_states[] = {
+//        {
+//                .state            = HELLO_READ,
+//                .on_arrival       = hello_read_init,
+//                .on_read_ready    = hello_read,
+//        },
+//        {
+//                .state            = HELLO_WRITE,
+//                .on_write_ready   = hello_write,
+//        },
+//        {
+//                .state = DONE,
+//        },
+//        {
+//                .state = ERROR,
+//        }
+//};
 static const struct state_definition client_states[] = {
         {
-                .state            = HELLO_READ,
-                .on_arrival       = hello_read_init,
-                .on_read_ready    = hello_read,
+                .state = CONNECTING,
+                .on_write_ready = connecting
         },
         {
-                .state            = HELLO_WRITE,
-                .on_write_ready   = hello_write,
+                .state = COPYING,
+                .on_arrival = copy_init,
+                .on_read_ready = copy_r,
+                .on_write_ready = copy_w
         },
         {
                 .state = DONE,

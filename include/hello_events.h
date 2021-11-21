@@ -1,11 +1,7 @@
 #ifndef PROTOS_TP2E_HELLO_EVENTS_H
 #define PROTOS_TP2E_HELLO_EVENTS_H
 
-#include "./selector.h"
-
-/**
- * Definición de variables para cada estado
- */
+#include "selector.h"
 
 /** usado por HELLO_READ, HELLO_WRITE */
 struct hello_st {

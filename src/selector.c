@@ -461,6 +461,7 @@ handle_iteration(fd_selector s) {
                     if(0 == item->handler->handle_read) {
                         assert(("OP_READ arrived but no handler. bug!" == 0));
                     } else {
+//                        fprintf(stdout,"selector->handle_iteration->about to handle a read intention\n");
                         item->handler->handle_read(&key);
                     }
                 }
@@ -470,6 +471,7 @@ handle_iteration(fd_selector s) {
                     if(0 == item->handler->handle_write) {
                         assert(("OP_WRITE arrived but no handler. bug!" == 0));
                     } else {
+//                        fprintf(stdout,"selector->handle_iteration->about to handle a write intention\n");
                         item->handler->handle_write(&key);
                     }
                 }

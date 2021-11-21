@@ -20,8 +20,8 @@
 
 #include <unistd.h>
 
-#include <sys/socket.h>  // socket
 #include <netinet/in.h>
+#include <sys/socket.h>  // socket
 
 
 #include "./include/selector.h"

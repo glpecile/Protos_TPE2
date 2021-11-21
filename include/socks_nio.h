@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 #include "./buffer.h"
+#include "connecting_events.h"
+#include "copy_events.h"
 #include "./hello.h"
 #include "./hello_events.h"
 #include "./socks_handler.h"
@@ -20,37 +22,50 @@
  * Máquina de estados general
  * ---------------------------------------------
  */
+//enum socks_state {
+//    /**
+//     * recibe el mensaje `hello` del cliente, y lo procesa
+//     *
+//     * Intereses:
+//     *     - OP_READ sobre client_fd
+//     *
+//     * Transiciones:
+//     *   - HELLO_READ  mientras el mensaje no esté completo
+//     *   - HELLO_WRITE cuando está completo
+//     *   - ERROR       ante cualquier error (IO/parseo)
+//     */
+//    HELLO_READ,
+//
+//    /**
+//     * envía la respuesta del `hello' al cliente.
+//     *
+//     * Intereses:
+//     *     - OP_WRITE sobre client_fd
+//     *
+//     * Transiciones:
+//     *   - HELLO_WRITE  mientras queden bytes por enviar
+//     *   - REQUEST_READ cuando se enviaron todos los bytes
+//     *   - ERROR        ante cualquier error (IO/parseo)
+//     */
+//    HELLO_WRITE,
+//
+//
+//    // estados terminales
+//    DONE,
+//    ERROR,
+//};
+
+/**
+ * ---------------------------------------------
+ * Máquina de estados general
+ * ---------------------------------------------
+ */
 enum socks_state {
-    /**
-     * recibe el mensaje `hello` del cliente, y lo procesa
-     *
-     * Intereses:
-     *     - OP_READ sobre client_fd
-     *
-     * Transiciones:
-     *   - HELLO_READ  mientras el mensaje no esté completo
-     *   - HELLO_WRITE cuando está completo
-     *   - ERROR       ante cualquier error (IO/parseo)
-     */
-    HELLO_READ,
-
-    /**
-     * envía la respuesta del `hello' al cliente.
-     *
-     * Intereses:
-     *     - OP_WRITE sobre client_fd
-     *
-     * Transiciones:
-     *   - HELLO_WRITE  mientras queden bytes por enviar
-     *   - REQUEST_READ cuando se enviaron todos los bytes
-     *   - ERROR        ante cualquier error (IO/parseo)
-     */
-    HELLO_WRITE,
-
-
-    // estados terminales
+    CONNECTING,
+    COPYING,
     DONE,
     ERROR,
+
 };
 
 /**
@@ -85,16 +100,16 @@ struct sock {
 
     /** Estados para el client_fd */
     union {
-        struct hello_st hello;
+//        struct hello_st hello;
 //        struct request_st request;
-//        struct copy copy;
+        struct copy copy;
     } client;
 
     /** Estados para el origin_fd */
-//    union{
-//        struct connecting conn;
-//        strut copy copy;
-//    } orig;
+    union{
+        struct connecting conn;
+        struct copy copy;
+    } orig;
 
     /** Buffers */
     buffer read_buffer;
