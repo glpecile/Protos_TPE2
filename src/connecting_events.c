@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 #include "../include/connecting_events.h"
@@ -11,59 +12,34 @@
 
 unsigned
 connecting(struct selector_key *key) {
-    printf("CONNECTING");
-    //TODO set domain after name resolution
-    /**Socket dedicado al origin server. Por cada cliente hay un socket dedicado al origin**/
-    int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    unsigned ret = COPYING;
-    //Cacheamos el error de socket()
-    if(sock < 0){
-        perror("socket creation failed.");
+    fprintf(stdout, "CONNECTING");
+    int error;
+    socklen_t len = sizeof(error);
+    struct sock *d = ATTACHMENT(key);
+    char *error_msg = "-ERR Connection refused.\r\n";
+
+    d->origin_fd = key->fd;
+
+    if (getsockopt(key->fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+        send(d->client_fd, error_msg, strlen(error_msg), 0);
+        fprintf(stderr, "Connection failed\n");
+        selector_set_interest_key(key, OP_NOOP);
         return ERROR;
-    }
-    //Para que no sea bloqueante.
-    if(selector_fd_set_nio(sock) == -1){
-        goto error;
-    }
-
-    //TODO esto luego se debe obtener de la resolucioon de nombres.-
-    struct sockaddr_in sockaddr;
-    sockaddr.sin_family = AF_INET;
-    sockaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    sockaddr.sin_port = 8080;
-
-    if(connect(sock,(const struct sockaddr *)&sockaddr, sizeof(sockaddr)) == -1){
-        if(errno == EINPROGRESS){
-            //Al ser no bloqueante si todavia no establecio la conexion... OP_NOOP->sin un interes en particular
-            selector_status st = selector_set_interest_key(key, OP_NOOP);
-            if(st != SELECTOR_SUCCESS){
-                goto error;
-            }
-            //registramos la conexion en el selector como WRITE (como indican las buenas practicas)
-            st = selector_register(key->s,sock,&handler,OP_WRITE, key->data);
-            if(st != SELECTOR_SUCCESS){
-                goto error;
-            }
-            //indicamos que ahora hay otra conexion que depende de este estado.
-            ATTACHMENT(key)->origin_fd = sock;
-            ATTACHMENT(key)->references += 1;
-
-        }else{
-            goto error;
+    } else {
+        if (error == 0) {
+            d->origin_fd = key->fd;
+        } else {
+            send(d->client_fd, error_msg, strlen(error_msg), 0);
+            fprintf(stderr, "Connection failed\n");
+            selector_set_interest_key(key, OP_NOOP);
+            return ERROR;
         }
-    }else{
-        abort();
     }
 
-    return ret;
+     selector_status ss = SELECTOR_SUCCESS;
+    ss |= selector_set_interest_key(key, OP_WRITE);
+    ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_NOOP);
 
-    error:
-    ret = ERROR;
-    fprintf(stdout,"Connecting to origin server failed.\n");
+    return SELECTOR_SUCCESS == ss ? COPYING : ERROR;
 
-    if(sock != -1) {
-        close(sock);
-    }
-
-    return ret;
 }

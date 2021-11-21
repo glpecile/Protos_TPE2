@@ -61,6 +61,7 @@
  * ---------------------------------------------
  */
 enum socks_state {
+    PRECONNECTING,
     CONNECTING,
     COPYING,
     DONE,

@@ -37,7 +37,6 @@ copy_ptr(struct selector_key *key) {
 
     if (*d->fd == key->fd) {
         //OK
-
     } else {
         d = d->other;
     }
