@@ -1,191 +1,146 @@
-#include <stdio.h>     /* for printf */
-#include <stdlib.h>    /* for exit */
-#include <limits.h>    /* LONG_MIN et al */
-#include <string.h>    /* memset */
-#include <errno.h>
-#include <getopt.h>
-
 #include "../include/args.h"
 
-static unsigned short
-port(const char *s) {
-     char *end     = 0;
-     const long sl = strtol(s, &end, 10);
+//static unsigned short port(const char *s) {
+//     char *end     = 0;
+//     const long sl = strtol(s, &end, 10);
+//
+//     if (end == s|| '\0' != *end
+//        || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
+//        || sl < 0 || sl > USHRT_MAX) {
+//         fprintf(stderr, "port should in in the range of 1-65536: %s\n", s);
+//         exit(1);
+//         return 1;
+//     }
+//     return (unsigned short)sl;
+//    return 0;
+//}
 
-     if (end == s|| '\0' != *end
-        || ((LONG_MIN == sl || LONG_MAX == sl) && ERANGE == errno)
-        || sl < 0 || sl > USHRT_MAX) {
-         fprintf(stderr, "port should in in the range of 1-65536: %s\n", s);
-         exit(1);
-         return 1;
-     }
-     return (unsigned short)sl;
+//static void
+//user(char *s, struct users *user) {
+//    char *p = strchr(s, ':');
+//    if(p == NULL) {
+//        fprintf(stderr, "password not found\n");
+//        exit(1);
+//    } else {
+//        *p = 0;
+//        p++;
+//        user->name = s;
+//        user->pass = p;
+//    }
+//
+//}
+
+static void version(void) {
+    fprintf(stderr, "POP3 Proxy version -1.0\n"
+                    "ITBA Protocolos de Comunicación 2021/2Q -- Group 2\n"
+    );
 }
 
-static void
-user(char *s, struct users *user) {
-    char *p = strchr(s, ':');
-    if(p == NULL) {
-        fprintf(stderr, "password not found\n");
-        exit(1);
-    } else {
-        *p = 0;
-        p++;
-        user->name = s;
-        user->pass = p;
-    }
-
-}
-
-static void
-version(void) {
-    fprintf(stderr, "socks5v version 0.0\n"
-                    "ITBA Protocolos de Comunicación 2020/1 -- Grupo X\n"
-                    "AQUI VA LA LICENCIA\n");
-}
-
-static void
-usage(const char *progname) {
+static void usage() {
     fprintf(stderr,
-        "Usage: %s [OPTION]...\n"
-        "\n"
-        "   -h               Imprime la ayuda y termina.\n"
-        "   -l <SOCKS addr>  Dirección donde servirá el proxy SOCKS.\n"
-        "   -L <conf  addr>  Dirección donde servirá el servicio de management.\n"
-        "   -p <SOCKS port>  Puerto entrante conexiones SOCKS.\n"
-        "   -P <conf port>   Puerto entrante conexiones configuracion\n"
-        "   -u <name>:<pass> Usuario y contraseña de usuario que puede usar el proxy. Hasta 10.\n"
-        "   -v               Imprime información sobre la versión versión y termina.\n"
-        "\n"
-        "   --doh-ip    <ip>    \n"
-        "   --doh-port  <port>  XXX\n"
-        "   --doh-host  <host>  XXX\n"
-        "   --doh-path  <host>  XXX\n"
-        "   --doh-query <host>  XXX\n"
-
-        "\n",
-        progname);
-    exit(1);
+            "Usage: pop3filter [ POSIX style options ] <servidor-origen>\n"
+            "\n"
+            "   -e               Specifies the file where stderr is sent after the execution of the filters. By default the file is /dev/null.\n"
+            "   -h               Prints help and exits.\n"
+            "   -l               Established the direction where the proxy will be served.  By default it listens every interfaces.\n"
+            "   -L               Establishes the direction where the management service is sent. By default it listens only in loopback.\n"
+            "   -o               Port where management server is found.   By default it is set to 9090.\n"
+            "   -p               TCP port where it is listening for incoming POP3 connections.  By default it is set to 1110.\n"
+            "   -P               TCP port where the POP3 server in the origin server.  By default it is set to 110.\n"
+            "   -t               Command used for external transformations.  Compatible with system(3).  The FILTERS section gives information regarding the interaction between pop3filter and the filter command.  By default no transformations are applied.\n"
+            "   -v               Prints information regarding the version and exits.\n"
+            "\n");
+//    exit(1);
 }
 
-void 
-parse_args(const int argc, char **argv, struct socks5args *args) {
-    memset(args, 0, sizeof(*args)); // sobre todo para setear en null los punteros de users
+static void help() {
+    fprintf(stderr, "\n -------------- Help -------------- \n");
+    usage();
+}
+int validate_parameters(const int argc){
+    if (argc >= 4) return -1;
+    return 0;
+}
+int parse_parameters(const int argc, char **argv) {
+    if (argc < 2) {
+        fprintf(stdout, "POP3 Proxy execution requires at least one argument.");
+        usage();
+        return -1;
+    }
+    char c = argv[1][1];
+    switch (argv[1][1]) { //argv[1][0] = '-'
+        case 'h':
+            if (argc >= 3) {
+                usage();
+                return -1;
+            }
+            help();
+            exit(0);
+        case 'v':
+            if (argc >= 3) {
+                usage();
+                return -1;
+            }
+            version();
+            exit(0);
+    }
+    if (validate_parameters(argc) != 0){
+        usage();
+        return -1;
+    }
+    return 0;
+}
+params parameters;
+void initialize_pop3_parameters_options() {
+    parameters = malloc(sizeof(*parameters));
+    parameters->port = 1110;
+    parameters->error_file = "/dev/null";
+    parameters->management_address = "127.0.0.1";
+    parameters->management_port = 9090;
+    parameters->listen_address = "0.0.0.0";
+    parameters->origin_port = 110;
+//    parameters->filter_command                  = malloc(sizeof(*e_transformation));
+//    parameters->filter_command->switch_program  = false; //tiene que estar seteado en false
+//    parameters->filter_command->program_name    = (unsigned char *) "cat"; //tiene que estar seteado en cat
+}
 
-    args->socks_addr = "0.0.0.0";
-    args->socks_port = 1080;
-
-    args->mng_addr   = "127.0.0.1";
-    args->mng_port   = 8080;
-
-    args->disectors_enabled = true;
-
-    args->doh.host = "localhost";
-    args->doh.ip   = "127.0.0.1";
-    args->doh.port = 8053;
-    args->doh.path = "/getnsrecord";
-    args->doh.query = "?dns=";
-
+params assign_param_values(const int argc, char **argv) {
     int c;
-    int nusers = 0;
 
-    while (true) {
-        int option_index = 0;
-        static struct option long_options[] = {
-            { "doh-ip",    required_argument, 0, 0xD001 },
-            { "doh-port",  required_argument, 0, 0xD002 },
-            { "doh-host",  required_argument, 0, 0xD003 },
-            { "doh-path",  required_argument, 0, 0xD004 },
-            { "doh-query", required_argument, 0, 0xD005 },
-            { 0,           0,                 0, 0 }
-        };
+    parameters->origin_server = argv[argc - 1];
+    optind = 1;
 
-        c = getopt_long(argc, argv, "hl:L:Np:P:u:v", long_options, &option_index);
-        if (c == -1)
-            break;
+    while ((c = getopt(argc, argv, "e:l:L:o:p:P:t:")) != -1) { // -v and -h were considered before, in parse_parameters
 
         switch (c) {
-            case 'h':
-                usage(argv[0]);
+            case 'e':
+                parameters->error_file = optarg;
                 break;
             case 'l':
-                args->socks_addr = optarg;
+                parameters->listen_address = optarg;
                 break;
             case 'L':
-                args->mng_addr = optarg;
+                parameters->management_address = optarg;
                 break;
-            case 'N':
-                args->disectors_enabled = false;
+            case 'o':
+                parameters->management_port = (uint16_t) atoi(optarg);
                 break;
             case 'p':
-                args->socks_port = port(optarg);
+                parameters->port = (uint16_t) atoi(optarg);
                 break;
             case 'P':
-                args->mng_port   = port(optarg);
+                parameters->origin_port = (uint16_t) atoi(optarg);
                 break;
-            case 'u':
-                if(nusers >= MAX_USERS) {
-                    fprintf(stderr, "maximun number of command line users reached: %d.\n", MAX_USERS);
-                    exit(1);
-                } else {
-                    user(optarg, args->users + nusers);
-                    nusers++;
-                }
-                break;
-            case 'v':
-                version();
-                exit(0);
-                break;
-            case 0xD001:
-                args->doh.ip = optarg;
-                break;
-            case 0xD002:
-                args->doh.port = port(optarg);
-                break;
-            case 0xD003:
-                args->doh.host = optarg;
-                break;
-            case 0xD004:
-                args->doh.path = optarg;
-                break;
-            case 0xD005:
-                args->doh.query = optarg;
+            case 't':
+                // TODO
                 break;
             default:
-                fprintf(stderr, "unknown argument %d.\n", c);
+                //should not enter here if validations worked correctly
+                usage();
                 exit(1);
+                break;
         }
 
     }
-    if (optind < argc) {
-        fprintf(stderr, "argument not accepted: ");
-        while (optind < argc) {
-            fprintf(stderr, "%s ", argv[optind++]);
-        }
-        fprintf(stderr, "\n");
-        exit(1);
-    }
-}
-
-void
-print_args(struct socks5args *args) {
-    printf("Socks addr: %s\n", args->socks_addr);
-    printf("Socks port: %d\n", args->socks_port);
-    printf("Mng addr: %s\n", args->mng_addr);
-    printf("Mng port: %d\n", args->mng_port);
-    printf("Disectors enabled: %d\n", args->disectors_enabled);
-}
-
-void
-print_doh(struct doh *doh) {
-    printf("Host: %s\n", doh->host);
-    printf("IP: %s\n", doh->ip);
-    printf("Port: %d\n", doh->port);
-    printf("Path: %s\n", doh->path);
-    printf("Query: %s\n", doh->query);
-}
-
-void
-print_user(struct users *user) {
-    printf("User: %s\n", user->name);
+    return parameters;
 }

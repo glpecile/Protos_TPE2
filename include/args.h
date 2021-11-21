@@ -2,6 +2,13 @@
 #define ARGS_H_kFlmYm1tW9p5npzDr2opQJ9jM8
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>     /* for printf */
+#include <stdlib.h>    /* for exit */
+#include <limits.h>    /* LONG_MIN et al */
+#include <string.h>    /* memset */
+#include <errno.h>
+#include <getopt.h>
 
 #define MAX_USERS 10
 
@@ -31,22 +38,29 @@ struct socks5args {
     struct users    users[MAX_USERS];
 };
 
+struct params {
+    uint16_t port;              // -p
+    char *error_file;           // -e
+    char *listen_address;       // -l
+    char *management_address;   // -L
+    uint16_t management_port;   // -o
+    char *origin_server;        // This is the argument origin_server, it's not an option
+    uint16_t origin_port;       // -P
+//    transformations          filter_command;       // -t TODO
+};
+
+typedef struct params * params;
+
+extern params parameters;
+
 /**
  * Interpreta la linea de comandos (argc, argv) llenando
  * args con defaults o la seleccion humana. Puede cortar
  * la ejecución.
  */
-void 
-parse_args(const int argc, char **argv, struct socks5args *args);
+int parse_parameters(const int argc, char **argv);
 
-void
-print_args(struct socks5args *args);
-
-void
-print_doh(struct doh *doh);
-
-void
-print_user(struct users *user);
+void initialize_pop3_parameters_options();
 
 #endif
 
