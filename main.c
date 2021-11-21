@@ -53,6 +53,11 @@ main(const int argc, char **argv) {
     int server_ipv6 = -1;
     int server_ipv4 = -1;
 
+    if( setvbuf(stdout, NULL, _IONBF, 0) ){
+        err_msg = "Unable to disbled buffering";
+        goto finally;
+    }
+
     /**
      * Creamos el socket para IPv6
      */
