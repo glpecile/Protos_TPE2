@@ -235,7 +235,7 @@ sigterm_handler(const int signal) {
 //    return ret;
 //}
 
-static int initialize_server(int port){
+static int initialize_server(int port) {
     const char *err_msg = NULL;
     selector_status ss = SELECTOR_SUCCESS;
     fd_selector selector = NULL;
@@ -260,7 +260,7 @@ static int initialize_server(int port){
         goto finally;
     }
 
-    fprintf(stdout, "Listening on TCP port %d\n",port);
+    fprintf(stdout, "Listening on TCP port %d\n", port);
 
     // man 7 ip. no importa reportar nada si falla.
     setsockopt(server_ipv6, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
@@ -355,7 +355,7 @@ static int initialize_server(int port){
         goto finally;
     }
     for (; !done;) {
-        fprintf(stdout,"Waiting for incoming connection...\n");
+        fprintf(stdout, "Waiting for incoming connection...\n");
         err_msg = NULL;
         ss = selector_select(selector);
         if (ss != SELECTOR_SUCCESS) {
@@ -407,20 +407,21 @@ static int initialize_server(int port){
 int
 main(const int argc, char **argv) {
     sock_args = malloc(sizeof(struct socks5args));
-    if(sock_args == NULL){
+    if (sock_args == NULL) {
         perror("Unable to allocate memory for arguments.");
         exit(-1);
     }
-    parse_args(argc, argv, sock_args);
+    initialize_pop3_parameters_options();
+    parse_parameters(argc, argv);
 
     //No tenemos nada que leer de stdin.
     //Un file descriptor extra
     close(STDIN_FILENO);
 
-    if( setvbuf(stdout, NULL, _IONBF, 0) ){
-       perror("Unable to disable buffering");
-       free(sock_args);
-       exit(-1);
+    if (setvbuf(stdout, NULL, _IONBF, 0)) {
+        perror("Unable to disable buffering");
+        free(sock_args);
+        exit(-1);
     }
     return initialize_server(sock_args->socks_port);
 

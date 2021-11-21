@@ -67,7 +67,6 @@ int parse_parameters(const int argc, char **argv) {
         usage();
         return -1;
     }
-    char c = argv[1][1];
     switch (argv[1][1]) { //argv[1][0] = '-'
         case 'h':
             if (argc >= 3) {
