@@ -121,10 +121,11 @@ main(const int argc, char **argv) {
     signal(SIGTERM, sigterm_handler);
     signal(SIGINT, sigterm_handler);
 
-    /**
-     * SELECTOR TODO setear tambien el de ipv4
-     */
     if (selector_fd_set_nio(server_ipv6) == -1) {
+        err_msg = "getting server socket flags";
+        goto finally;
+    }
+    if (selector_fd_set_nio(server_ipv4) == -1) {
         err_msg = "getting server socket flags";
         goto finally;
     }
@@ -156,7 +157,13 @@ main(const int argc, char **argv) {
         err_msg = "registering fd";
         goto finally;
     }
+    ss = selector_register(selector, server_ipv4, &socks_handler, OP_READ, NULL);
+    if (ss != SELECTOR_SUCCESS) {
+        err_msg = "registering fd";
+        goto finally;
+    }
     for (; !done;) {
+        //fprintf(stdout,"Waiting for incoming connection...\n");
         err_msg = NULL;
         ss = selector_select(selector);
         if (ss != SELECTOR_SUCCESS) {
