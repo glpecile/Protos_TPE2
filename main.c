@@ -29,9 +29,12 @@
 #include "./include/args.h"
 #include "./include/buffer.h"
 #include "./include/socks_nio.h"
+#include "./include/logger.h"
 
 #define PENDING_CONNECTIONS 20
 #define INITIAL_ELEMENTS 1024
+#define TRUE 1
+#define FALSE 0
 
 static bool done = false;
 
@@ -241,7 +244,41 @@ static int initialize_server(int port) {
     int server_ipv6 = -1;
     int server_ipv4 = -1;
 
+    /**
+     * Creamos el socket para UDP
+     */
+    struct sockaddr_in udp_address;
+    int upd_socket_type = SOCK_DGRAM;
+    int udp_socket;
+    int opt = TRUE;
 
+    //socket upd created
+    if ((udp_socket = socket(AF_INET, upd_socket_type, 0)) < 0) {
+        err_msg = "socket failed";
+        goto finally;
+    }
+    //set master socket to allow multiple connections.
+    if (setsockopt(udp_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
+        err_msg = "setsockopt";
+        goto finally;
+    }
+
+    //type of socket address created
+    udp_address.sin_family = AF_INET;
+    udp_address.sin_addr.s_addr = INADDR_ANY;
+    udp_address.sin_port = htons(port);
+
+    //bind the master socket.
+    if (bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address)) < 0) {
+        if (close(udp_socket) < 0) {
+            err_msg = "close failed";
+            goto finally;
+        }
+        err_msg = "bind failed";
+        goto finally;
+    }
+
+    fprintf(stdout, "UDP Listener on port %d\n", port);
 
     /**
      * Creamos el socket para IPv6
@@ -396,6 +433,10 @@ static int initialize_server(int port) {
     if (server_ipv4 >= 0) {
         printf("about to close the server_ipv4\n");
         close(server_ipv4);
+    }
+    if (udp_socket >= 0){
+        printf("about to close the udp socket\n");
+        close(udp_socket);
     }
     free(parameters);
     printf("closing main safely...\n");
