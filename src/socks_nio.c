@@ -182,6 +182,12 @@ static const struct state_definition client_states[] = {
                 .on_write_ready = connecting
         },
         {
+                .state = GREETINGS_ST,
+                .on_arrival = greetings_init,
+                .on_read_ready = greetings_read,
+                .on_write_ready = greetings_write,
+        },
+        {
                 .state = COPYING_ST,
                 .on_arrival = copy_init,
                 .on_read_ready = copy_r,

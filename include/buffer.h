@@ -5,6 +5,9 @@
 #include <unistd.h>  // size_t, ssize_t
 #include <stdint.h>
 
+#define CR '\r'
+#define LF '\n'
+
 /**
  * buffer.c - buffer con acceso directo (útil para I/O) que mantiene
  *            mantiene puntero de lectura y de escritura.
