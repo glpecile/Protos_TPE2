@@ -24,12 +24,12 @@
 #include <netinet/in.h>
 #include <sys/socket.h>  // socket
 
-
 #include "./include/selector.h"
 #include "./include/args.h"
 #include "./include/buffer.h"
 #include "./include/socks_nio.h"
 #include "./include/logger.h"
+#include "./include/admin.h"
 
 #define PENDING_CONNECTIONS 20
 #define INITIAL_ELEMENTS 1024
@@ -43,8 +43,7 @@ sigterm_handler(const int signal) {
     printf("Signal %d, cleaning up and exiting\n", signal);
     done = true;
 }
-//
-//
+
 //static int create_server_ipv6(int port, bool * error, char * err_msg) {
 //    int server_ipv6 = -1;
 //    struct sockaddr_in6 addr6;
@@ -243,13 +242,13 @@ static int initialize_server(int port) {
 
     int server_ipv6 = -1;
     int server_ipv4 = -1;
+    int udp_socket = -1;
 
     /**
      * Creamos el socket para UDP
      */
     struct sockaddr_in udp_address;
     int upd_socket_type = SOCK_DGRAM;
-    int udp_socket;
     int opt = TRUE;
 
     // Socket UDP creado
@@ -266,7 +265,7 @@ static int initialize_server(int port) {
     // Tipo de socket address creado
     udp_address.sin_family = AF_INET;
     udp_address.sin_addr.s_addr = INADDR_ANY;
-    udp_address.sin_port = htons(port);
+    udp_address.sin_port = htons(parameters->management_port);
 
     // Bindeamos socket udp.
     if (bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address)) < 0) {
@@ -278,7 +277,7 @@ static int initialize_server(int port) {
         goto finally;
     }
 
-    fprintf(stdout, "UDP Listener on port %d\n", port);
+    fprintf(stdout, "UDP Listener on port %d\n", parameters->management_port);
 
     /**
      * Creamos el socket para IPv6
@@ -383,6 +382,12 @@ static int initialize_server(int port) {
             .handle_write      = NULL,
             .handle_close      = NULL, // nada que liberar
     };
+
+    const struct fd_handler upd_socks_handler = {
+            .handle_read       = udp_read,
+            .handle_write      = udp_write,
+    };
+
     ss = selector_register(selector, server_ipv6, &socks_handler, OP_READ, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
@@ -393,7 +398,7 @@ static int initialize_server(int port) {
         err_msg = "registering fd";
         goto finally;
     }
-    ss = selector_register(selector, udp_socket, &socks_handler, OP_READ, NULL);
+    ss = selector_register(selector, udp_socket, &upd_socks_handler, OP_READ | OP_WRITE, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
