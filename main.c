@@ -252,23 +252,23 @@ static int initialize_server(int port) {
     int udp_socket;
     int opt = TRUE;
 
-    //socket upd created
+    // Socket UDP creado
     if ((udp_socket = socket(AF_INET, upd_socket_type, 0)) < 0) {
         err_msg = "socket failed";
         goto finally;
     }
-    //set master socket to allow multiple connections.
+    // Set socket permite multiples conexiones.
     if (setsockopt(udp_socket, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
         err_msg = "setsockopt";
         goto finally;
     }
 
-    //type of socket address created
+    // Tipo de socket address creado
     udp_address.sin_family = AF_INET;
     udp_address.sin_addr.s_addr = INADDR_ANY;
     udp_address.sin_port = htons(port);
 
-    //bind the master socket.
+    // Bindeamos socket udp.
     if (bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address)) < 0) {
         if (close(udp_socket) < 0) {
             err_msg = "close failed";
@@ -356,6 +356,10 @@ static int initialize_server(int port) {
         err_msg = "getting server socket flags";
         goto finally;
     }
+    if (selector_fd_set_nio(udp_socket) == -1) {
+        err_msg = "getting udp socket flags";
+        goto finally;
+    }
     //1-Iniciar la libreria
     const struct selector_init conf = {
             .signal = SIGALRM,
@@ -385,6 +389,11 @@ static int initialize_server(int port) {
         goto finally;
     }
     ss = selector_register(selector, server_ipv4, &socks_handler, OP_READ, NULL);
+    if (ss != SELECTOR_SUCCESS) {
+        err_msg = "registering fd";
+        goto finally;
+    }
+    ss = selector_register(selector, udp_socket, &socks_handler, OP_READ, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
@@ -434,7 +443,7 @@ static int initialize_server(int port) {
         printf("about to close the server_ipv4\n");
         close(server_ipv4);
     }
-    if (udp_socket >= 0){
+    if (udp_socket >= 0) {
         printf("about to close the udp socket\n");
         close(udp_socket);
     }
@@ -453,8 +462,8 @@ main(const int argc, char **argv) {
     initialize_pop3_parameters_options();
     assign_param_values(argc, argv);
 
-    //No tenemos nada que leer de stdin.
-    //Un file descriptor extra
+    // No tenemos nada que leer de stdin.
+    // Un file descriptor extra
     close(STDIN_FILENO);
 
     if (setvbuf(stdout, NULL, _IONBF, 0)) {
