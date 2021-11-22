@@ -485,11 +485,9 @@ handle_block_notifications(fd_selector s) {
     struct selector_key key = {
             .s = s,
     };
-    pthread_mutex_lock(&s->resolution_mutex);
-    for (struct blocking_job *j = s->resolution_jobs;
-         j != NULL;
-         j = j->next) {
 
+    pthread_mutex_lock(&s->resolution_mutex);
+    for (struct blocking_job *j = s->resolution_jobs; j != NULL;) {
         struct item *item = s->fds + j->fd;
         if (ITEM_USED(item)) {
             key.fd = item->fd;
@@ -500,6 +498,7 @@ handle_block_notifications(fd_selector s) {
         j = j->next;
         free(prev_job);
     }
+
     s->resolution_jobs = 0;
     pthread_mutex_unlock(&s->resolution_mutex);
 }

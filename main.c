@@ -404,16 +404,24 @@ static int initialize_server(int port) {
 
 int
 main(const int argc, char **argv) {
+
     if (parse_parameters(argc, argv) < 0) {
         return -1;
     }
+
     initialize_pop3_parameters_options();
     assign_param_values(argc, argv);
+
     //No tenemos nada que leer de stdin.
     //Un file descriptor extra
     close(STDIN_FILENO);
 
     if (setvbuf(stdout, NULL, _IONBF, 0)) {
+        perror("Unable to disable buffering");
+        free(parameters);
+        exit(-1);
+    }
+    if (setvbuf(stderr, NULL, _IONBF, 0)) {
         perror("Unable to disable buffering");
         free(parameters);
         exit(-1);

@@ -38,7 +38,7 @@ static void version(void) {
 
 static void usage() {
     fprintf(stderr,
-            "Usage: pop3filter [ POSIX style options ] <servidor-origen>\n"
+            "Usage: pop3filter [ POSIX style options ] <origin_server>\n"
             "\n"
             "   -e               Specifies the file where stderr is sent after the execution of the filters. By default the file is /dev/null.\n"
             "   -h               Prints help and exits.\n"
@@ -161,7 +161,7 @@ int validate_parameters(const int argc, char **argv) {
 
 int parse_parameters(const int argc, char **argv) {
     if (argc < 2) {
-        fprintf(stdout, "POP3 Proxy execution requires at least one argument.");
+        fprintf(stdout, "POP3 Proxy execution requires at least one argument.\n");
         usage();
         return -1;
     }

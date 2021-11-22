@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "../include/socks_handler.h"
 #include "../include/socks_nio.h"

@@ -51,7 +51,7 @@ static struct sock *socks_new(int client_fd) {
 
     // Seteo de la maquina de estados
     to_return->stm.initial = DNS_RESOLUTION_ST;
-    to_return->stm.max_state = DONE_ST;
+    to_return->stm.max_state = ERROR_ST;
     to_return->stm.states = get_client_states();
 
     // Inicialización de la máquina de estados

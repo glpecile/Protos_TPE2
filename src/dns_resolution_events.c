@@ -35,8 +35,6 @@ dns_resolution_blocking(void *data) {
     char buff[7];
     snprintf(buff, sizeof(buff), "%d", parameters->origin_port);
 
-    printf("%s\n", parameters->origin_server);
-
     if (getaddrinfo(parameters->origin_server, buff, &hints, &s->origin_resolution) != 0) {
 //        log(ERROR, "DNS resolution error");
     }
