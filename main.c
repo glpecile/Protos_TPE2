@@ -404,9 +404,11 @@ static int initialize_server(int port) {
 
 int
 main(const int argc, char **argv) {
+    if (parse_parameters(argc, argv) < 0) {
+        return -1;
+    }
     initialize_pop3_parameters_options();
-    parse_parameters(argc, argv);
-
+    assign_param_values(argc, argv);
     //No tenemos nada que leer de stdin.
     //Un file descriptor extra
     close(STDIN_FILENO);
