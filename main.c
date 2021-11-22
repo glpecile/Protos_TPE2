@@ -398,7 +398,7 @@ static int initialize_server(int port) {
         err_msg = "registering fd";
         goto finally;
     }
-    ss = selector_register(selector, udp_socket, &upd_socks_handler, OP_READ | OP_WRITE, NULL);
+    ss = selector_register(selector, udp_socket, &upd_socks_handler, OP_READ, NULL);
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
