@@ -42,7 +42,7 @@ static void usage() {
             "\n"
             "   -e               Specifies the file where stderr is sent after the execution of the filters. By default the file is /dev/null.\n"
             "   -h               Prints help and exits.\n"
-            "   -l               Established the direction where the proxy will be served.  By default it listens every interfaces.\n"
+            "   -l               Establishes the direction where the proxy will be served.  By default it listens every interfaces.\n"
             "   -L               Establishes the direction where the management service is sent. By default it listens only in loopback.\n"
             "   -o               Port where management server is found.   By default it is set to 9090.\n"
             "   -p               TCP port where it is listening for incoming POP3 connections.  By default it is set to 1110.\n"
@@ -95,7 +95,6 @@ int validate_parameter(const char *option, char *param) {
         case 'p':
             if (is_valid_port(param) != 0) {
                 fprintf(stderr, "Invalid port\n");
-
                 return -1;
             }
             break;
@@ -141,7 +140,6 @@ int validate_parameters(const int argc, char **argv) {
                     free_argv_parameters(argv_params, size);
                     return -1;
                 }
-            fprintf(stderr,"%d",option);
             switch (option) {
                 case ':':
                     fprintf(stderr, "Missing parameter for option %s.\n", next_param);
@@ -149,16 +147,14 @@ int validate_parameters(const int argc, char **argv) {
                 case '?':
                     fprintf(stderr, "Invalid option: %s.\n", next_param);
                     break;
-                case -1:
+                default:
                     fprintf(stderr, "Argument of option '%s' is %s.\n", next_param, optarg);
                     validate_parameter(next_param, optarg);
-                    break;
-                default:
-                    fprintf(stderr, "No errors on input\n");
                     break;
             }
         }
     }
+    fprintf(stderr, "No errors on input\n");
     free_argv_parameters(argv_params, size);
     return 0;
 }
