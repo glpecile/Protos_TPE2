@@ -9,6 +9,7 @@
 #include <string.h>    /* memset */
 #include <errno.h>
 #include <getopt.h>
+#include <ctype.h>
 
 #define MAX_USERS 10
 
@@ -61,6 +62,8 @@ extern params parameters;
 int parse_parameters(const int argc, char **argv);
 
 void initialize_pop3_parameters_options();
+
+params assign_param_values(const int argc, char **argv);
 
 #endif
 

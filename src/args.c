@@ -57,10 +57,112 @@ static void help() {
     fprintf(stderr, "\n -------------- Help -------------- \n");
     usage();
 }
-int validate_parameters(const int argc){
-    if (argc >= 4) return -1;
+
+int is_valid_port(char *parameter) {
+    if (strlen(parameter) == 4) {
+        for (int i = 0; i < 4; i++) {
+            if (!isdigit(parameter[i])) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+    return -1;
+}
+
+int is_valid_error_file(const char *parameter) {
+    FILE *fb = fopen(parameter, "r");
+    if (fb == NULL)
+        return -1;
+    else
+        return 0;
+}
+
+int validate_parameter(const char *option, char *param) {
+    switch (option[1]) { //option[0] must be '-'.
+        case 'e':
+            if (is_valid_error_file(param) != 0) {
+                fprintf(stderr, "Invalid error file\n");
+                return -1;
+            }
+            break;
+        case 'o':
+            if (is_valid_port(param) != 0) {
+                fprintf(stderr, "Invalid management port\n");
+                return -1;
+            }
+            break;
+        case 'p':
+            if (is_valid_port(param) != 0) {
+                fprintf(stderr, "Invalid port\n");
+
+                return -1;
+            }
+            break;
+        case 'P':
+            if (is_valid_port(param) != 0) {
+                fprintf(stderr, "Invalid origin port\n");
+                return -1;
+            }
+            break;
+    }
     return 0;
 }
+
+void free_argv_parameters(char **argv_parameter, int size) {
+    for (int i = 0; i < size; i++) {
+        free(argv_parameter[i]);
+    }
+    free(argv_parameter);
+}
+
+int validate_parameters(const int argc, char **argv) {
+    int size = argc - 1;
+    char **argv_params = (char **) malloc((size) * sizeof(char *));
+    for (int i = 0; i < size; i++) {
+        argv_params[i] = malloc(sizeof(char) * strlen(argv[i]) + 1);
+        strcpy(argv_params[i], argv[i]);
+    }
+    opterr = 0;
+    char *next_param = NULL;
+    for (int i = 1; i < size; i++) {
+        if (optind < size) {
+            next_param = argv_params[optind];
+
+            if (next_param[0] != '-') {
+                fprintf(stderr, "Options must begin with '-'. Run ./pop3filter -h for help.\n");
+                free_argv_parameters(argv_params, size);
+                return -1;
+            }
+            int option = getopt(size, argv_params, "e:l:L:o:p:P:t:");
+            if (optarg != NULL)
+                if (optarg[0] == '-') {
+                    fprintf(stderr, "Parameters cannot begin with '-'.\n");
+                    free_argv_parameters(argv_params, size);
+                    return -1;
+                }
+            fprintf(stderr,"%d",option);
+            switch (option) {
+                case ':':
+                    fprintf(stderr, "Missing parameter for option %s.\n", next_param);
+                    break;
+                case '?':
+                    fprintf(stderr, "Invalid option: %s.\n", next_param);
+                    break;
+                case -1:
+                    fprintf(stderr, "Argument of option '%s' is %s.\n", next_param, optarg);
+                    validate_parameter(next_param, optarg);
+                    break;
+                default:
+                    fprintf(stderr, "No errors on input\n");
+                    break;
+            }
+        }
+    }
+    free_argv_parameters(argv_params, size);
+    return 0;
+}
+
 int parse_parameters(const int argc, char **argv) {
     if (argc < 2) {
         fprintf(stdout, "POP3 Proxy execution requires at least one argument.");
@@ -83,13 +185,15 @@ int parse_parameters(const int argc, char **argv) {
             version();
             exit(0);
     }
-    if (validate_parameters(argc) != 0){
+    if (validate_parameters(argc, argv) != 0) {
         usage();
         return -1;
     }
     return 0;
 }
+
 params parameters;
+
 void initialize_pop3_parameters_options() {
     parameters = malloc(sizeof(*parameters));
     parameters->port = 1110;
