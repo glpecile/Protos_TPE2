@@ -15,7 +15,7 @@ socks_read(struct selector_key *key) {
     struct state_machine *stm = &ATTACHMENT(key)->stm;
     const enum socks_state st = stm_handler_read(stm, key);
 
-    if (ERROR == st || DONE == st) {
+    if (ERROR_ST == st || DONE_ST == st) {
         socks_done(key);
     }
 }
@@ -25,7 +25,7 @@ socks_write(struct selector_key *key) {
     struct state_machine *stm = &ATTACHMENT(key)->stm;
     const enum socks_state st = stm_handler_write(stm, key);
 
-    if (ERROR == st || DONE == st) {
+    if (ERROR_ST == st || DONE_ST == st) {
         socks_done(key);
     }
 }
@@ -35,7 +35,7 @@ socks_block(struct selector_key *key) {
     struct state_machine *stm = &ATTACHMENT(key)->stm;
     const enum socks_state st = stm_handler_block(stm, key);
 
-    if (ERROR == st || DONE == st) {
+    if (ERROR_ST == st || DONE_ST == st) {
         socks_done(key);
     }
 }

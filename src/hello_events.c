@@ -59,14 +59,14 @@ hello_read(struct selector_key *key) {
             if (SELECTOR_SUCCESS == selector_set_interest_key(key, OP_WRITE)) {
                 ret = hello_process(d);
             } else {
-                ret = ERROR;
+                ret = ERROR_ST;
             }
         }
     } else {
-        ret = ERROR;
+        ret = ERROR_ST;
     }
 
-    return error ? ERROR : ret;
+    return error ? ERROR_ST : ret;
 }
 
 /**
@@ -79,10 +79,10 @@ hello_process(const struct hello_st *d) {
     uint8_t m = d->method;
     const uint8_t r = (m == SOCKS_HELLO_NO_ACCEPTABLE_METHODS) ? 0xFF : 0x00;
     if (-1 == hello_marshall(d->wb, r)) {
-        ret = ERROR;
+        ret = ERROR_ST;
     }
     if (SOCKS_HELLO_NO_ACCEPTABLE_METHODS == m) {
-        ret = ERROR;
+        ret = ERROR_ST;
     }
     return ret;
 }

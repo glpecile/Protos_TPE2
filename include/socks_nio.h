@@ -32,7 +32,7 @@
 //     * Transiciones:
 //     *   - HELLO_READ  mientras el mensaje no esté completo
 //     *   - HELLO_WRITE cuando está completo
-//     *   - ERROR       ante cualquier error (IO/parseo)
+//     *   - ERROR_ST       ante cualquier error (IO/parseo)
 //     */
 //    HELLO_READ,
 //
@@ -45,14 +45,14 @@
 //     * Transiciones:
 //     *   - HELLO_WRITE  mientras queden bytes por enviar
 //     *   - REQUEST_READ cuando se enviaron todos los bytes
-//     *   - ERROR        ante cualquier error (IO/parseo)
+//     *   - ERROR_ST        ante cualquier error (IO/parseo)
 //     */
 //    HELLO_WRITE,
 //
 //
 //    // estados terminales
-//    DONE,
-//    ERROR,
+//    DONE_ST,
+//    ERROR_ST,
 //};
 
 /**
@@ -61,11 +61,11 @@
  * ---------------------------------------------
  */
 enum socks_state {
-    PRECONNECTING,
-    CONNECTING,
-    COPYING,
-    DONE,
-    ERROR,
+    DNS_RESOLUTION_ST,
+    CONNECTING_ST,
+    COPYING_ST,
+    DONE_ST,
+    ERROR_ST,
 
 };
 
@@ -94,6 +94,9 @@ struct sock {
 
     /** Información del origin */
     int origin_fd;
+    struct sockaddr_storage origin_addr;
+    socklen_t origin_addr_len;
+    int origin_domain;
     struct addrinfo *origin_resolution;
 
     /** Maquinas de estados */
@@ -107,7 +110,7 @@ struct sock {
     } client;
 
     /** Estados para el origin_fd */
-    union{
+    union {
         struct connecting conn;
         struct copy copy;
     } orig;
