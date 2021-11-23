@@ -35,5 +35,5 @@ int main(){
         printf("%s\n", command.cmd);
     }
 
-//    free_queue(queue_);
+    free_queue(queue_);
 }

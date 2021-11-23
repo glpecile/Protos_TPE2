@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include "../include/greetings_events.h"
 #include "../include/socks_nio.h"
 
@@ -42,6 +43,8 @@ greetings_init(const unsigned state, struct selector_key *key) {
  */
 unsigned
 greetings_read(struct selector_key *key) {
+    printf("Entramos al greetings_read\n");
+    printf("Soy el fd->%i\n", key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
@@ -56,7 +59,10 @@ greetings_read(struct selector_key *key) {
 
     if (!buffer_can_write(greetings->buffer)) {
         //pasar al estado de write para dumpear el buffer.
-        ret = set_to_interest(key, ret, OP_WRITE);
+        selector_status ss = SELECTOR_SUCCESS;
+        ss |= selector_set_interest_key(key, OP_NOOP);
+        ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd,OP_WRITE);
+        ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
     } else {
         //Le pedimos al buffer el puntero para escribir
         write = buffer_write_ptr((buffer *) greetings->buffer, &size_can_write);
@@ -68,7 +74,12 @@ greetings_read(struct selector_key *key) {
         } else {
             check_char(greetings, (char) *write);
             if (greetings->greet_finished) {
-                ret = set_to_interest(key, ret, OP_WRITE);
+                ret = GREETINGS_ST;
+                selector_status ss = SELECTOR_SUCCESS;
+                ss |= selector_set_interest_key(key, OP_NOOP);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd,OP_WRITE);
+                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+                //ret = set_to_interest(key, ret, OP_WRITE);
             }
             buffer_write_adv(greetings->buffer, bytes_read);
         }
@@ -80,6 +91,8 @@ greetings_read(struct selector_key *key) {
 
 unsigned
 greetings_write(struct selector_key *key) {
+    printf("Entramos al greetings_write\n");
+    printf("Soy el fd->%i\n",key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
@@ -103,7 +116,11 @@ greetings_write(struct selector_key *key) {
             ret = ERROR_ST;
         } else {
             if (greetings->greet_finished) {
-                ret = COPYING_ST;
+                ret = CAPA_ST;
+                selector_status ss = SELECTOR_SUCCESS;
+                ss |= selector_set_interest_key(key, OP_NOOP);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd,OP_WRITE);
+                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
             }
             buffer_read_adv(greetings->buffer, bytes_write);
         }

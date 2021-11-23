@@ -353,7 +353,7 @@ static int initialize_server(int port) {
         goto finally;
     }
     for (; !done;) {
-        fprintf(stdout, "Waiting for incoming connection...\n");
+        //fprintf(stdout, "Waiting for incoming connection...\n");
         err_msg = NULL;
         ss = selector_select(selector);
         if (ss != SELECTOR_SUCCESS) {

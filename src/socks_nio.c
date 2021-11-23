@@ -8,6 +8,7 @@
 #include "../include/buffer.h"
 #include "../include/dns_resolution_events.h"
 #include "../include/socks_nio.h"
+#include "../include/capa_events.h"
 
 #define MAX_POOL 89 // numero primo y pertenece a la secuencia de fibonacci.
 
@@ -188,10 +189,16 @@ static const struct state_definition client_states[] = {
                 .on_write_ready = greetings_write,
         },
         {
+                .state = CAPA_ST,
+                .on_arrival = capa_init,
+                .on_read_ready = capa_read,//Segundo
+                .on_write_ready = capa_send,//Primero
+        },
+        {
                 .state = COPYING_ST,
                 .on_arrival = copy_init,
                 .on_read_ready = copy_r,
-                .on_write_ready = copy_w
+                .on_write_ready = copy_w,
         },
         {
                 .state = DONE_ST,

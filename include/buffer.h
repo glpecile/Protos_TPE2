@@ -7,6 +7,7 @@
 
 #define CR '\r'
 #define LF '\n'
+#define DOT '.'
 
 /**
  * buffer.c - buffer con acceso directo (útil para I/O) que mantiene
