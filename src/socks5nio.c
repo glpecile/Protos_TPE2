@@ -34,7 +34,7 @@
 //     * Transiciones:
 //     *   - HELLO_READ  mientras el mensaje no esté completo
 //     *   - HELLO_WRITE cuando está completo
-//     *   - ERROR       ante cualquier error (IO/parseo)
+//     *   - ERROR_ST       ante cualquier error (IO/parseo)
 //     */
 //    HELLO_READ,
 //
@@ -47,14 +47,14 @@
 //     * Transiciones:
 //     *   - HELLO_WRITE  mientras queden bytes por enviar
 //     *   - REQUEST_READ cuando se enviaron todos los bytes
-//     *   - ERROR        ante cualquier error (IO/parseo)
+//     *   - ERROR_ST        ante cualquier error (IO/parseo)
 //     */
 //    HELLO_WRITE,
 //
 //
 //    // estados terminales
-//    DONE,
-//    ERROR,
+//    DONE_ST,
+//    ERROR_ST,
 //};
 //
 //////////////////////////////////////////////////////////////////////
@@ -245,14 +245,14 @@
 //            if (SELECTOR_SUCCESS == selector_set_interest_key(key, OP_WRITE)) {
 //                ret = hello_process(d);
 //            } else {
-//                ret = ERROR;
+//                ret = ERROR_ST;
 //            }
 //        }
 //    } else {
-//        ret = ERROR;
+//        ret = ERROR_ST;
 //    }
 //
-//    return error ? ERROR : ret;
+//    return error ? ERROR_ST : ret;
 //}
 //
 ///** procesamiento del mensaje `hello' */
@@ -263,10 +263,10 @@
 //    uint8_t m = d->method;
 //    const uint8_t r = (m == SOCKS_HELLO_NO_ACCEPTABLE_METHODS) ? 0xFF : 0x00;
 //    if (-1 == hello_marshall(d->wb, r)) {
-//        ret = ERROR;
+//        ret = ERROR_ST;
 //    }
 //    if (SOCKS_HELLO_NO_ACCEPTABLE_METHODS == m) {
-//        ret = ERROR;
+//        ret = ERROR_ST;
 //    }
 //    return ret;
 //}
@@ -292,7 +292,7 @@
 //    struct state_machine *stm = &ATTACHMENT(key)->stm;
 //    const enum socks_v5state st = stm_handler_read(stm, key);
 //
-//    if (ERROR == st || DONE == st) {
+//    if (ERROR_ST == st || DONE_ST == st) {
 //        socksv5_done(key);
 //    }
 //}
@@ -302,7 +302,7 @@
 //    struct state_machine *stm = &ATTACHMENT(key)->stm;
 //    const enum socks_v5state st = stm_handler_write(stm, key);
 //
-//    if (ERROR == st || DONE == st) {
+//    if (ERROR_ST == st || DONE_ST == st) {
 //        socksv5_done(key);
 //    }
 //}
@@ -312,7 +312,7 @@
 //    struct state_machine *stm = &ATTACHMENT(key)->stm;
 //    const enum socks_v5state st = stm_handler_block(stm, key);
 //
-//    if (ERROR == st || DONE == st) {
+//    if (ERROR_ST == st || DONE_ST == st) {
 //        socksv5_done(key);
 //    }
 //}

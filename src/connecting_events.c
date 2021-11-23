@@ -12,7 +12,7 @@
 
 unsigned
 connecting(struct selector_key *key) {
-    fprintf(stdout, "CONNECTING");
+    fprintf(stdout, "CONNECTING_ST");
     int error;
     socklen_t len = sizeof(error);
     struct sock *d = ATTACHMENT(key);
@@ -24,7 +24,7 @@ connecting(struct selector_key *key) {
         send(d->client_fd, error_msg, strlen(error_msg), 0);
         fprintf(stderr, "Connection failed\n");
         selector_set_interest_key(key, OP_NOOP);
-        return ERROR;
+        return ERROR_ST;
     } else {
         if (error == 0) {
             d->origin_fd = key->fd;
@@ -32,14 +32,13 @@ connecting(struct selector_key *key) {
             send(d->client_fd, error_msg, strlen(error_msg), 0);
             fprintf(stderr, "Connection failed\n");
             selector_set_interest_key(key, OP_NOOP);
-            return ERROR;
+            return ERROR_ST;
         }
     }
 
      selector_status ss = SELECTOR_SUCCESS;
-    ss |= selector_set_interest_key(key, OP_WRITE);
-    ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_NOOP);
+    ss |= selector_set_interest_key(key, OP_WRITE); //TODO esto tiene que cambiar a read
+    ss |= selector_set_interest(key->s, d->client_fd, OP_NOOP);
 
-    return SELECTOR_SUCCESS == ss ? COPYING : ERROR;
-
+    return SELECTOR_SUCCESS == ss ? GREETINGS_ST : ERROR_ST;
 }

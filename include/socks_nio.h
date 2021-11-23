@@ -4,15 +4,20 @@
 #include <sys/socket.h>
 #include <stdint.h>
 
-#include "./buffer.h"
+#include "buffer.h"
 #include "connecting_events.h"
 #include "copy_events.h"
-#include "./hello.h"
-#include "./hello_events.h"
-#include "./socks_handler.h"
-#include "./stm.h"
+#include "greetings_events.h"
+#include "hello.h"
+#include "hello_events.h"
+#include "socks_handler.h"
+#include "stm.h"
+#include "capa_events.h"
+#include "response_events.h"
+#include "request_events.h"
+#include "./admin_utils.h"
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 128
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -32,7 +37,7 @@
 //     * Transiciones:
 //     *   - HELLO_READ  mientras el mensaje no esté completo
 //     *   - HELLO_WRITE cuando está completo
-//     *   - ERROR       ante cualquier error (IO/parseo)
+//     *   - ERROR_ST       ante cualquier error (IO/parseo)
 //     */
 //    HELLO_READ,
 //
@@ -45,14 +50,14 @@
 //     * Transiciones:
 //     *   - HELLO_WRITE  mientras queden bytes por enviar
 //     *   - REQUEST_READ cuando se enviaron todos los bytes
-//     *   - ERROR        ante cualquier error (IO/parseo)
+//     *   - ERROR_ST        ante cualquier error (IO/parseo)
 //     */
 //    HELLO_WRITE,
 //
 //
 //    // estados terminales
-//    DONE,
-//    ERROR,
+//    DONE_ST,
+//    ERROR_ST,
 //};
 
 /**
@@ -61,11 +66,15 @@
  * ---------------------------------------------
  */
 enum socks_state {
-    PRECONNECTING,
-    CONNECTING,
-    COPYING,
-    DONE,
-    ERROR,
+    DNS_RESOLUTION_ST,
+    CONNECTING_ST,
+    GREETINGS_ST,
+    CAPA_ST,
+    REQUEST_ST,
+    RESPONSE_ST,
+    COPYING_ST,
+    DONE_ST,
+    ERROR_ST,
 
 };
 
@@ -94,6 +103,9 @@ struct sock {
 
     /** Información del origin */
     int origin_fd;
+    struct sockaddr_storage origin_addr;
+    socklen_t origin_addr_len;
+    int origin_domain;
     struct addrinfo *origin_resolution;
 
     /** Maquinas de estados */
@@ -104,12 +116,17 @@ struct sock {
 //        struct hello_st hello;
 //        struct request_st request;
         struct copy copy;
+        struct request request;
     } client;
 
     /** Estados para el origin_fd */
-    union{
+    union {
         struct connecting conn;
+        struct greetings greet;
         struct copy copy;
+        struct capa capa;
+        struct response response;
+
     } orig;
 
     /** Buffers */

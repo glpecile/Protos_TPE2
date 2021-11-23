@@ -3,15 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include "../include/buffer.h"
-#include "../include/hello.h"
-#include "../include/selector.h"
+#include "../include/dns_resolution_events.h"
 #include "../include/socks_nio.h"
-#include "../include/stm.h"
+#include "../include/capa_events.h"
+#include "../include/response_events.h"
 
 #define MAX_POOL 89 // numero primo y pertenece a la secuencia de fibonacci.
 
@@ -54,8 +52,8 @@ static struct sock *socks_new(int client_fd) {
     to_return->origin_fd = -1;
 
     // Seteo de la maquina de estados
-    to_return->stm.initial = PRECONNECTING;
-    to_return->stm.max_state = DONE;
+    to_return->stm.initial = DNS_RESOLUTION_ST;
+    to_return->stm.max_state = ERROR_ST;
     to_return->stm.states = get_client_states();
 
     // Inicialización de la máquina de estados
@@ -128,7 +126,7 @@ socks_passive_accept(struct selector_key *key) {
     if (client == -1) {
         goto fail;
     }
-    // convierte en non blocking el socket nuevo.
+    // convierte en  non blocking el socket nuevo.
     if (selector_fd_set_nio(client) == -1) {
         goto fail;
     }
@@ -144,6 +142,7 @@ socks_passive_accept(struct selector_key *key) {
     if (selector_register(key->s, client, &handler, OP_WRITE, state) != SELECTOR_SUCCESS) {
         goto fail;
     }
+    stats_new_connection();
     fprintf(stdout, "New connection with client %d established", state->client_fd);
     return;
 
@@ -153,64 +152,6 @@ socks_passive_accept(struct selector_key *key) {
     }
 
     socks_destroy(state);
-}
-
-static unsigned
-preconnecting(struct selector_key *key) {
-    //TODO set domain after name resolution
-    /**Socket dedicado al origin server. Por cada cliente hay un socket dedicado al origin**/
-    int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    unsigned ret = CONNECTING;
-    //Cacheamos el error de socket()
-    if(sock < 0){
-        perror("socket creation failed.");
-        return ERROR;
-    }
-    //Para que no sea bloqueante.
-    if(selector_fd_set_nio(sock) == -1){
-        goto error;
-    }
-
-    //TODO esto luego se debe obtener de la resolucioon de nombres.-
-    struct sockaddr_in sockaddr;
-    sockaddr.sin_family = AF_INET;
-    sockaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    sockaddr.sin_port = htons(8080);
-
-    if(connect(sock,(const struct sockaddr *)&sockaddr, sizeof(sockaddr)) == -1){
-        if(errno == EINPROGRESS){
-            //Al ser no bloqueante si todavia no establecio la conexion... OP_NOOP->sin un interes en particular
-            selector_status st = selector_set_interest_key(key, OP_NOOP);
-            if(st != SELECTOR_SUCCESS){
-                goto error;
-            }
-            //registramos la conexion en el selector como WRITE (como indican las buenas practicas)
-            st = selector_register(key->s,sock,&handler,OP_WRITE, key->data);
-            if(st != SELECTOR_SUCCESS){
-                goto error;
-            }
-            //indicamos que ahora hay otra conexion que depende de este estado.
-//            ATTACHMENT(key)->origin_fd = sock;
-            ATTACHMENT(key)->references += 1;
-
-        }else{
-            goto error;
-        }
-    }else{
-        abort();
-    }
-
-    return ret;
-
-    error:
-    ret = ERROR;
-    fprintf(stdout,"Connecting to origin server failed.\n");
-
-    if(sock != -1) {
-        close(sock);
-    }
-
-    return ret;
 }
 
 /**
@@ -227,32 +168,57 @@ preconnecting(struct selector_key *key) {
 //                .on_write_ready   = hello_write,
 //        },
 //        {
-//                .state = DONE,
+//                .state = DONE_ST,
 //        },
 //        {
-//                .state = ERROR,
+//                .state = ERROR_ST,
 //        }
 //};
 static const struct state_definition client_states[] = {
         {
-                .state = PRECONNECTING,
-                .on_write_ready = preconnecting
+                .state = DNS_RESOLUTION_ST,
+                .on_write_ready = dns_resolution,
+                .on_block_ready = dns_resolution_done
         },
         {
-                .state = CONNECTING,
+                .state = CONNECTING_ST,
                 .on_write_ready = connecting
         },
         {
-                .state = COPYING,
+                .state = GREETINGS_ST,
+                .on_arrival = greetings_init,
+                .on_read_ready = greetings_read,
+                .on_write_ready = greetings_write,
+        },
+        {
+                .state = CAPA_ST,
+                .on_arrival = capa_init,
+                .on_read_ready = capa_read,//Segundo
+                .on_write_ready = capa_send,//Primero
+        },
+        {
+                .state = REQUEST_ST,
+                .on_arrival = request_init,
+                .on_read_ready = request_read,//Primero leo del cliente
+                .on_write_ready = request_send,//Segundo escribo al origen
+        },
+        {
+                .state = RESPONSE_ST,
+                .on_arrival = response_init,
+                .on_read_ready = response_read, //Primero se recibe la rta del origin
+                .on_write_ready = response_send,//Ya se obtiene la rta que hay que entregarle al cliente
+        },
+        {
+                .state = COPYING_ST,
                 .on_arrival = copy_init,
                 .on_read_ready = copy_r,
-                .on_write_ready = copy_w
+                .on_write_ready = copy_w,
         },
         {
-                .state = DONE,
+                .state = DONE_ST,
         },
         {
-                .state = ERROR,
+                .state = ERROR_ST,
         }
 };
 

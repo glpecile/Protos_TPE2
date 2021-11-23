@@ -9,6 +9,7 @@
 #include <string.h>    /* memset */
 #include <errno.h>
 #include <getopt.h>
+#include <ctype.h>
 
 #define MAX_USERS 10
 
@@ -25,19 +26,6 @@ struct doh {
     char           *query;
 };
 
-struct socks5args {
-    char           *socks_addr;
-    unsigned short  socks_port;
-
-    char *          mng_addr;
-    unsigned short  mng_port;
-
-    bool            disectors_enabled;
-
-    struct doh      doh;
-    struct users    users[MAX_USERS];
-};
-
 struct params {
     uint16_t port;              // -p
     char *error_file;           // -e
@@ -46,7 +34,7 @@ struct params {
     uint16_t management_port;   // -o
     char *origin_server;        // This is the argument origin_server, it's not an option
     uint16_t origin_port;       // -P
-//    transformations          filter_command;       // -t TODO
+      // -t TODO
 };
 
 typedef struct params * params;
@@ -61,6 +49,8 @@ extern params parameters;
 int parse_parameters(const int argc, char **argv);
 
 void initialize_pop3_parameters_options();
+
+params assign_param_values(const int argc, char **argv);
 
 #endif
 

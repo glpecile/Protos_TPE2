@@ -77,7 +77,7 @@ copy_r(struct selector_key *key) {
     size_t size;
     ssize_t n;
     buffer *b = d->rb;
-    unsigned ret = COPYING;
+    unsigned ret = COPYING_ST;
 
     uint8_t *ptr = buffer_write_ptr(b, &size);
     n = recv(key->fd, ptr, size, 0);
@@ -96,7 +96,7 @@ copy_r(struct selector_key *key) {
     copy_compute_interests(key->s, d->other);
 
     if (d->duplex == OP_NOOP) {
-        ret = DONE;
+        ret = DONE_ST;
     }
 
     return ret;
@@ -114,7 +114,7 @@ copy_w(struct selector_key *key) {
     size_t size;
     ssize_t n;
     buffer *b = d->wb;
-    unsigned ret = COPYING;
+    unsigned ret = COPYING_ST;
 
     uint8_t *ptr = buffer_read_ptr(b, &size);
     n = send(key->fd, ptr, size, MSG_NOSIGNAL);
@@ -126,6 +126,7 @@ copy_w(struct selector_key *key) {
             d->other->duplex &= -OP_READ;
         }
     } else {
+        add_transfered_bytes((int) n);
         buffer_read_adv(b, n);
     }
 
@@ -133,7 +134,7 @@ copy_w(struct selector_key *key) {
     copy_compute_interests(key->s, d->other);
 
     if (d->duplex == OP_NOOP) {
-        ret = DONE;
+        ret = DONE_ST;
     }
 
     return ret;
