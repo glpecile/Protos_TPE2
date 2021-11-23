@@ -22,7 +22,7 @@ struct admin {
     buffer write_buffer;
     uint8_t write_buffer_space[BUFFER_SIZE];
 };
-enum options {GET_BUFF_SIZE, GET_STATS, GET_CURRENT_CON, SET_AUTH, SET_MEM_SPACE, SET_TIMEOUT, HELP, NONE = -1};
+enum options {GET_BUFF_SIZE, GET_STATS, SET_AUTH, HELP, NONE = -1};
 
 #define ATTACHMENT_ADMIN(key) ((struct admin *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))

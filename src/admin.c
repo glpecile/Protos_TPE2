@@ -88,21 +88,6 @@ void udp_write(struct selector_key *key) {
                 }
             }
                 break;
-            case GET_CURRENT_CON: {
-                int a = 1;
-                printf("%d\n", a);
-            }
-                break;
-            case SET_TIMEOUT: {
-                int a = 1;
-                printf("%d\n", a);
-            }
-                break;
-            case SET_MEM_SPACE: {
-                int a = 1;
-                printf("%d\n", a);
-            }
-                break;
             case SET_AUTH: {
                 char *parameter = calloc(1, sizeof(char) * 30);
                 int length = parse_get_set_arguments(to_parse, parameter);
@@ -177,14 +162,8 @@ enum options validate_options(char *to_parse) {
         return GET_BUFF_SIZE;
     } else if (strcmp("GET_STATS", option) == 0) {
         return GET_STATS;
-    } else if (strcmp("GET_CURRENT_CON", option) == 0) {
-        return GET_CURRENT_CON;
     } else if (strcmp("SET_AUTH", option) == 0) {
         return SET_AUTH;
-    } else if (strcmp("SET_MEM_SPACE", option) == 0) {
-        return SET_MEM_SPACE;
-    } else if (strcmp("SET_TIMEOUT", option) == 0) {
-        return SET_TIMEOUT;
     }
     return NONE;
 }
