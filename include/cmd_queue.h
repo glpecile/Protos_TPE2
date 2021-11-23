@@ -8,6 +8,7 @@
 
 struct cmd {
     char cmd[MAX_CMD_SIZE];
+    unsigned long cmd_size;
     bool multiline;
 };
 
