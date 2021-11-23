@@ -49,8 +49,6 @@ void udp_write(struct selector_key *key) {
                                  " - GET_STATS\n"
                                  " - GET_CURRENT_CON\n"
                                  " - SET_AUTH\n"
-                                 " - SET_MEM_SPACE\n"
-                                 " - SET_TIMEOUT\n"
                                  " - HELP\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
