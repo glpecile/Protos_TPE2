@@ -77,6 +77,9 @@ socks_destroy_(struct sock *s) {
         freeaddrinfo(s->origin_resolution);
         s->origin_resolution = 0;
     }
+    if(s->client.request.cmd_queue != NULL){
+        free(s->client.request.cmd_queue);
+    }
     free(s);
 }
 
@@ -108,7 +111,8 @@ socks_pool_destroy(void) {
     struct sock *next, *s;
     for (s = pool; s != NULL; s = next) {
         next = s->next;
-        free(s);
+        socks_destroy_(s);
+//        free(s);
     }
 }
 
@@ -173,6 +177,21 @@ socks_passive_accept(struct selector_key *key) {
 //                .state = ERROR_ST,
 //        }
 //};
+void done_client(const unsigned state, struct selector_key *key){
+    printf("Closing connections for client: %i\n", ATTACHMENT(key)->client_fd);
+    selector_unregister_fd(key->s, ATTACHMENT(key)->client_fd);
+    selector_unregister_fd(key->s, ATTACHMENT(key)->origin_fd);
+    socks_destroy(ATTACHMENT(key));
+}
+
+void error_close(const unsigned state, struct selector_key *key){
+    printf("Client %i found an error, closing ...",ATTACHMENT(key)->client_fd);
+    selector_unregister_fd(key->s, ATTACHMENT(key)->client_fd);
+    selector_unregister_fd(key->s, ATTACHMENT(key)->origin_fd);
+    socks_destroy(ATTACHMENT(key));
+
+}
+
 static const struct state_definition client_states[] = {
         {
                 .state = DNS_RESOLUTION_ST,
@@ -215,9 +234,11 @@ static const struct state_definition client_states[] = {
         },
         {
                 .state = DONE_ST,
+                .on_arrival = done_client,
         },
         {
                 .state = ERROR_ST,
+                .on_arrival = error_close,
         }
 };
 
