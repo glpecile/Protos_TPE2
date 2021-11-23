@@ -9,8 +9,8 @@
 #include <sys/socket.h>
 #include "./buffer.h"
 #include "./admin_utils.h"
+#include "socks_nio.h"
 
-#define BUFFER_SIZE 64
 #define PASS_LEN 6
 
 struct admin {
