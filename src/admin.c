@@ -23,7 +23,6 @@ void udp_read(struct selector_key *key) {
         exit(1);
     } else {
         buffer_write_adv(&admin_commands->read_buffer, valread);
-        printf("Parsear y hacer algo\n");
         selector_set_interest_key(key, OP_WRITE);
     }
 }
@@ -37,20 +36,21 @@ void udp_write(struct selector_key *key) {
     int bytes_to_send = (int) size_can_read;
     ssize_t num_bytes_sent = 0;
     if (validate_password(to_parse, admin_commands) != 0) {
-        char *to_print = "200 UNAUTHORIZED (INVALID AUTH_ID)\n";
+        char *to_print = "401 UNAUTHORIZED (INVALID AUTH_ID)\n";
         bytes_to_send = (int) strlen(to_print);
         num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr, clntAddrLen);
         validate_sendto(num_bytes_sent, bytes_to_send);
     } else {
         switch (validate_options(to_parse)) {
             case HELP: {
-                char *to_print = "~~ ADMIN HELP ~~\n"
-                                 "GET STATS \n"
-                                 "GET CURRENT_CON \n"
-                                 "SET PASS  \n"
-                                 "SET MEM_SPACE \n"
-                                 "SET TIMEOUT\n"
-                                 "HELP \n";
+                char *to_print = "~~~~ ADMIN HELP ~~~~\n"
+                                 " - GET_BUFF_SIZE\n"
+                                 " - GET_STATS\n"
+                                 " - GET_CURRENT_CON\n"
+                                 " - SET_AUTH\n"
+                                 " - SET_MEM_SPACE\n"
+                                 " - SET_TIMEOUT\n"
+                                 " - HELP\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
                                         clntAddrLen);
@@ -58,13 +58,27 @@ void udp_write(struct selector_key *key) {
             }
             break;
             case GET_BUFF_SIZE: {
-                int a = 1;
-                printf("%d\n", a);
+                int buff_size = BUFF_SIZE;
+                char *to_print = calloc(1, 20 * sizeof(char));
+                sprintf(to_print, "Buffer size: %d\n",buff_size);
+                bytes_to_send = (int) strlen(to_print);
+                num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                        clntAddrLen);
+                validate_sendto(num_bytes_sent, bytes_to_send);
+                free(to_print);
             }
             break;
             case GET_STATS: {
-                int a = 1;
-                printf("%d\n", a);
+                int hist = stats->historic_connections, cur = stats->curent_connections, bytes_t = stats->bytes_transfered;
+                char *to_print = calloc(1, 100 * sizeof(char));
+                sprintf(to_print, "Total conections: %d,\n"
+                                  "Currently connected: %d,\n"
+                                  "Total bytes transfered: %d.\n",hist, cur, bytes_t);
+                bytes_to_send = (int) strlen(to_print);
+                num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                        clntAddrLen);
+                validate_sendto(num_bytes_sent, bytes_to_send);
+                free(to_print);
             }
             break;
             case GET_CURRENT_CON: {
@@ -87,7 +101,7 @@ void udp_write(struct selector_key *key) {
                 printf("%d\n", a);
             }
             break;
-            case NONE: {
+            default: {
                 char *to_print = "300 UNKNOWN/UNSUPPORTED COMMAND\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
@@ -95,8 +109,6 @@ void udp_write(struct selector_key *key) {
                 validate_sendto(num_bytes_sent, bytes_to_send);
             }
             break;
-            default:
-                break;
         }
 
 

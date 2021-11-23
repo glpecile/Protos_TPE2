@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "./buffer.h"
+#include "./admin_utils.h"
 
 #define BUFFER_SIZE 64
 #define PASS_LEN 6

@@ -249,10 +249,10 @@ static int initialize_server(int port) {
     if (admin == NULL) {
         goto finally;
     }
-    set_admin_password(admin, "000000");
     if (initialize_stats() != 0) {
         goto finally;
     }
+    set_admin_password(admin, "000000");
 
     /**
      * Creamos el socket para UDP
