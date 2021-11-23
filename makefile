@@ -1,14 +1,20 @@
-.PHONY : all clean test cleanTest server
-COMPILER=gcc
+.PHONY : all clean test cleanTest
+
+COMPILER = ${CC}
+
 CFLAGS = --std=c11 -fsanitize=address -pedantic -pedantic-errors -Wall -Wextra -Werror -Wno-unused-parameter -Wno-implicit-fallthrough -D_POSIX_C_SOURCE=200112L -g
+
 LIBS = -l pthread
+
 all: main
+
 clean:
 	- rm -f *.o  main
 
-COMMON =  ./src/admin.c src/admin_utils.c ./src/args.c ./src/buffer.c ./src/capa_events.c src/connecting_events.c src/copy_events.c ./src/dns_resolution_events.c ./src/greetings_events.c ./src/hello.c ./src/logger.c ./src/netutils.c ./src/parser.c ./src/parser_utils.c  ./src/request_events.c ./src/response_events.c ./src/selector.c ./src/socks_handler.c ./src/socks_nio.c ./src/stm.c ./src/cmd_queue.c
-main:
-	$(COMPILER) $(CFLAGS) -o main ./main.c $(COMMON) $(LIBS)
+COMMON =  ./src/admin.o src/admin_utils.o ./src/args.o ./src/buffer.o ./src/capa_events.o src/connecting_events.o src/copy_events.o ./src/dns_resolution_events.o ./src/greetings_events.o ./src/hello.o ./src/logger.o ./src/netutils.o ./src/parser.o ./src/parser_utils.o  ./src/request_events.o ./src/response_events.o ./src/selector.o ./src/socks_handler.o ./src/socks_nio.o ./src/stm.o ./src/cmd_queue.o
+
+main: $(COMMON)
+	$(COMPILER) $(CFLAGS) -o pop3filter ./main.c $(COMMON) $(LIBS)
 
 test: clean all
 	mkdir tests; valgrind --leak-check=full -v ./main 2>> tests/results.valgrind; cppcheck --quiet --enable=all --force --inconclusive main.c 2>> tests/output.cppOut

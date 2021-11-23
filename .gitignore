@@ -1,4 +1,4 @@
-
+*.o
 .DS_Store
 .vscode
 .idea/
@@ -10,3 +10,4 @@ main
 tests
 
 .bash_history
+/pop3filter
