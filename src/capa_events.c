@@ -62,13 +62,14 @@ unsigned capa_read(struct selector_key *key) {
         ret = ERROR_ST;
     }else{
         check_char(d,(char) *write);
+        if(strstr((char*) write,PIPELINING) != NULL){
+            printf("Pipelining encontrado\n");
+            d->pipelining = true;
+        }
         if(d->capa_finished){
             //Hacemos la busqueda del string de pipelining y eso.
             //si encuentra el pipelining se setea el flag
-            if(strstr((char*) write,PIPELINING) != NULL){
-                printf("Pipelining encontrado\n");
-                d->pipelining = true;
-            }
+
             buffer_reset(d->res);
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
@@ -79,6 +80,7 @@ unsigned capa_read(struct selector_key *key) {
             printf("Nunca entramos al capa_finished\n");
             ret = CAPA_ST;
         }
+        buffer_write_adv(d->res,bytes_read);
     }
 
     return ret;
