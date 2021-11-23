@@ -239,11 +239,16 @@ static int initialize_server(int port) {
     const char *err_msg = NULL;
     selector_status ss = SELECTOR_SUCCESS;
     fd_selector selector = NULL;
+    struct admin *admin = calloc(1, sizeof(struct admin));
+
 
     int server_ipv6 = -1;
     int server_ipv4 = -1;
     int udp_socket = -1;
 
+    if (admin == NULL) {
+        goto finally;
+    }
     /**
      * Creamos el socket para UDP
      */
@@ -398,7 +403,10 @@ static int initialize_server(int port) {
         err_msg = "registering fd";
         goto finally;
     }
-    ss = selector_register(selector, udp_socket, &upd_socks_handler, OP_READ, NULL);
+    buffer_init(&admin->read_buffer, N(admin->read_buffer_space), admin->read_buffer_space);
+    buffer_init(&admin->write_buffer, N(admin->write_buffer_space), admin->write_buffer_space);
+    ss = selector_register(selector, udp_socket, &upd_socks_handler, OP_READ, admin);
+
     if (ss != SELECTOR_SUCCESS) {
         err_msg = "registering fd";
         goto finally;
@@ -451,6 +459,9 @@ static int initialize_server(int port) {
     if (udp_socket >= 0) {
         printf("about to close the udp socket\n");
         close(udp_socket);
+    }
+    if (admin != NULL) {
+        free(admin);
     }
     free(parameters);
     printf("closing main safely...\n");
