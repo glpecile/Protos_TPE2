@@ -1,4 +1,4 @@
-
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include "../include/request_events.h"
@@ -19,7 +19,31 @@ static void check_char(struct request *r, char write) {
     r->request_finished = r->cr && r->lf;
 }
 
-void request_init(const unsigned state, struct selector_key *key) {
+static void
+parse_cmd(struct cmd *cmd) {
+    cmd->cmd_id = COMMON;
+    cmd->multiline = false;
+    switch (toupper(cmd->cmd[0])) {
+        case 'R':
+            if (strncmp(cmd->cmd, "RETR", 4) == 0) {
+                cmd->cmd_id = RETR;
+                cmd->multiline = true;
+            }
+            break;
+        case 'Q':
+            if (strncmp(cmd->cmd, "QUIT", 4) == 0) {
+                cmd->cmd_id = QUIT;
+            }
+            break;
+        case 'L':
+            if (cmd->cmd_size == 4 && strncmp(cmd->cmd, "LIST", 4) == 0) {
+                cmd->multiline = true;
+            }
+    }
+}
+
+void
+request_init(const unsigned state, struct selector_key *key) {
     struct request *request = &ATTACHMENT(key)->client.request;
     request->cr = false;
     request->lf = false;
@@ -35,7 +59,8 @@ void request_init(const unsigned state, struct selector_key *key) {
  * Termina la funcion al recibir el CRLF, ahi cambia los intereses CLIENTE->NOOP y ORIGIN->OP_WRITE
  *  Tomar en consideracion que a la queue se agrega unicamente el comando, sin el CRCLF O LF
  */
-unsigned request_read(struct selector_key *key) {
+unsigned
+request_read(struct selector_key *key) {
     printf("Entramos al request_read\n");
     printf("Soy el fd->%i\n", key->fd);
 
@@ -66,8 +91,8 @@ unsigned request_read(struct selector_key *key) {
             printf("la request es %s\n", read);
             struct cmd cmd;
             cmd.cmd_size = size_can_read - request->lf - request->cr;
-            cmd.multiline = false;
             memcpy(cmd.cmd, read, cmd.cmd_size);
+            parse_cmd(&cmd);
             queue(request->cmd_queue, cmd);
             if (request->request_finished) {
                 printf("request terminado\n");
@@ -84,7 +109,8 @@ unsigned request_read(struct selector_key *key) {
     return ret;
 }
 
-unsigned request_send(struct selector_key *key) {
+unsigned
+request_send(struct selector_key *key) {
     printf("Entramos al request_send\n");
     printf("Soy el fd->%i\n", key->fd);
 
