@@ -198,9 +198,7 @@ void initialize_pop3_parameters_options() {
     parameters->management_port = 9090;
     parameters->listen_address = "0.0.0.0";
     parameters->origin_port = 110;
-//    parameters->filter_command                  = malloc(sizeof(*e_transformation));
-//    parameters->filter_command->switch_program  = false; //tiene que estar seteado en false
-//    parameters->filter_command->program_name    = (unsigned char *) "cat"; //tiene que estar seteado en cat
+    parameters->transform_cmd = NULL;
 }
 
 params assign_param_values(const int argc, char **argv) {
@@ -231,7 +229,7 @@ params assign_param_values(const int argc, char **argv) {
                 parameters->origin_port = (uint16_t) atoi(optarg);
                 break;
             case 't':
-                // TODO
+                parameters->transform_cmd = (char *) optarg;
                 break;
             default:
                 //should not enter here if validations worked correctly

@@ -47,7 +47,7 @@ struct params {
     uint16_t management_port;   // -o
     char *origin_server;        // This is the argument origin_server, it's not an option
     uint16_t origin_port;       // -P
-//    transformations          filter_command;       // -t TODO
+    char *transform_cmd;        // -t
 };
 
 typedef struct params * params;
