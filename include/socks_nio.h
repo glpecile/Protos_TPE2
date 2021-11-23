@@ -13,6 +13,7 @@
 #include "socks_handler.h"
 #include "stm.h"
 #include "capa_events.h"
+#include "request_events.h"
 
 #define BUFFER_SIZE 128
 
@@ -67,6 +68,7 @@ enum socks_state {
     CONNECTING_ST,
     GREETINGS_ST,
     CAPA_ST,
+    REQUEST_ST,
     COPYING_ST,
     DONE_ST,
     ERROR_ST,
@@ -111,6 +113,7 @@ struct sock {
 //        struct hello_st hello;
 //        struct request_st request;
         struct copy copy;
+        struct request request;
     } client;
 
     /** Estados para el origin_fd */

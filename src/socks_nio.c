@@ -195,6 +195,12 @@ static const struct state_definition client_states[] = {
                 .on_write_ready = capa_send,//Primero
         },
         {
+                .state = REQUEST_ST,
+                .on_arrival = request_init,
+                .on_read_ready = request_read,//Primero leo del cliente
+                .on_write_ready = request_send,//Segundo escribo al origen
+        },
+        {
                 .state = COPYING_ST,
                 .on_arrival = copy_init,
                 .on_read_ready = copy_r,
