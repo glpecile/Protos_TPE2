@@ -9,6 +9,7 @@
 #include "../include/dns_resolution_events.h"
 #include "../include/socks_nio.h"
 #include "../include/capa_events.h"
+#include "../include/response_events.h"
 
 #define MAX_POOL 89 // numero primo y pertenece a la secuencia de fibonacci.
 
@@ -125,7 +126,7 @@ socks_passive_accept(struct selector_key *key) {
     if (client == -1) {
         goto fail;
     }
-    // convierte en non blocking el socket nuevo.
+    // convierte en  non blocking el socket nuevo.
     if (selector_fd_set_nio(client) == -1) {
         goto fail;
     }
@@ -193,6 +194,18 @@ static const struct state_definition client_states[] = {
                 .on_arrival = capa_init,
                 .on_read_ready = capa_read,//Segundo
                 .on_write_ready = capa_send,//Primero
+        },
+        {
+                .state = REQUEST_ST,
+                .on_arrival = request_init,
+                .on_read_ready = request_read,//Primero leo del cliente
+                .on_write_ready = request_send,//Segundo escribo al origen
+        },
+        {
+                .state = RESPONSE_ST,
+                .on_arrival = response_init,
+                .on_read_ready = response_read, //Primero se recibe la rta del origin
+                .on_write_ready = response_send,//Ya se obtiene la rta que hay que entregarle al cliente
         },
         {
                 .state = COPYING_ST,

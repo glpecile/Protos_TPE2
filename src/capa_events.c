@@ -50,7 +50,7 @@ unsigned capa_read(struct selector_key *key) {
     printf("Entramos al capa_read\n");
     printf("Soy el fd->%i\n", key->fd);
     struct capa *d = &ATTACHMENT(key)->orig.capa;
-    unsigned ret = COPYING_ST;
+    unsigned ret = REQUEST_ST;
     //Variables necesarias para los buffers
     uint8_t *write; //puntero al buffer
     size_t size_can_write = 1; // se va a leer de a 1 byte

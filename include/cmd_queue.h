@@ -5,9 +5,16 @@
 
 #define MAX_CMD_SIZE 47 //incluye el \r\n
 
+enum CMD_ID {
+    COMMON,
+    RETR,
+    QUIT
+};
 
 struct cmd {
+    enum CMD_ID cmd_id;
     char cmd[MAX_CMD_SIZE];
+    unsigned long cmd_size;
     bool multiline;
 };
 
