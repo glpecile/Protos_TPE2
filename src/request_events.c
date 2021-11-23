@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include "../include/request_events.h"
 #include "../include/socks_nio.h"
 
@@ -25,20 +26,26 @@ parse_cmd(struct cmd *cmd) {
     cmd->multiline = false;
     switch (toupper(cmd->cmd[0])) {
         case 'R':
-            if (strncmp(cmd->cmd, "RETR", 4) == 0) {
+            if (strncasecmp(cmd->cmd, "RETR", 4) == 0) {
                 cmd->cmd_id = RETR;
                 cmd->multiline = true;
             }
             break;
         case 'Q':
-            if (strncmp(cmd->cmd, "QUIT", 4) == 0) {
+            if (strncasecmp(cmd->cmd, "QUIT", 4) == 0) {
                 cmd->cmd_id = QUIT;
             }
             break;
         case 'L':
-            if (cmd->cmd_size == 4 && strncmp(cmd->cmd, "LIST", 4) == 0) {
+            if (cmd->cmd_size == 4 && strncasecmp(cmd->cmd, "LIST", 4) == 0) {
                 cmd->multiline = true;
             }
+            break;
+        case 'C':
+            if (strncasecmp(cmd->cmd, "CAPA", 4) == 0) {
+                cmd->multiline = true;
+            }
+            break;
     }
 }
 
