@@ -36,14 +36,15 @@ void udp_write(struct selector_key *key) {
     int bytes_to_send = (int) size_can_read;
     ssize_t num_bytes_sent = 0;
     if (validate_password(to_parse, admin_commands) != 0) {
-        char *to_print = "401 UNAUTHORIZED (INVALID AUTH_ID)\n";
+        char *to_print = "-ERR\tUNAUTHORIZED (INVALID AUTH_ID)\n";
         bytes_to_send = (int) strlen(to_print);
         num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr, clntAddrLen);
         validate_sendto(num_bytes_sent, bytes_to_send);
     } else {
         switch (validate_options(to_parse)) {
             case HELP: {
-                char *to_print = "~~~~ ADMIN HELP ~~~~\n"
+                char *to_print = "+OK\n"
+                                 "~~~~ ADMIN HELP ~~~~\n"
                                  " - GET_BUFF_SIZE\n"
                                  " - GET_STATS\n"
                                  " - GET_CURRENT_CON\n"
@@ -56,59 +57,65 @@ void udp_write(struct selector_key *key) {
                                         clntAddrLen);
                 validate_sendto(num_bytes_sent, bytes_to_send);
             }
-            break;
+                break;
             case GET_BUFF_SIZE: {
                 int buff_size = BUFF_SIZE;
                 char *to_print = calloc(1, 20 * sizeof(char));
-                sprintf(to_print, "Buffer size: %d\n",buff_size);
+                sprintf(to_print, "+OK\t %d\n", buff_size);
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
                                         clntAddrLen);
                 validate_sendto(num_bytes_sent, bytes_to_send);
                 free(to_print);
             }
-            break;
+                break;
             case GET_STATS: {
-                int hist = stats->historic_connections, cur = stats->curent_connections, bytes_t = stats->bytes_transfered;
-                char *to_print = calloc(1, 100 * sizeof(char));
-                sprintf(to_print, "Total conections: %d,\n"
-                                  "Currently connected: %d,\n"
-                                  "Total bytes transfered: %d.\n",hist, cur, bytes_t);
-                bytes_to_send = (int) strlen(to_print);
-                num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                        clntAddrLen);
-                validate_sendto(num_bytes_sent, bytes_to_send);
-                free(to_print);
+                if (stats == NULL) { //no deberia llegar aca pues en main.c se verifica esto
+                    char *to_print = "-ERR\tUNKNOWN ERROR\n";
+                    bytes_to_send = (int) strlen(to_print);
+                    num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                            clntAddrLen);
+                    validate_sendto(num_bytes_sent, bytes_to_send);
+                } else {
+                    char *to_print = calloc(1, 100 * sizeof(char));
+                    sprintf(to_print, "+OK\t%d\t%d\t%d\n", stats->historic_connections,
+                            stats->curent_connections, stats->bytes_transfered);
+                    bytes_to_send = (int) strlen(to_print);
+                    num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                            clntAddrLen);
+                    validate_sendto(num_bytes_sent, bytes_to_send);
+                    free(to_print);
+                }
             }
-            break;
+                break;
             case GET_CURRENT_CON: {
                 int a = 1;
                 printf("%d\n", a);
             }
-            break;
+                break;
             case SET_TIMEOUT: {
                 int a = 1;
                 printf("%d\n", a);
             }
-            break;
+                break;
             case SET_MEM_SPACE: {
                 int a = 1;
                 printf("%d\n", a);
             }
-            break;
+                break;
             case SET_AUTH: {
                 int a = 1;
                 printf("%d\n", a);
             }
-            break;
+                break;
             default: {
-                char *to_print = "300 UNKNOWN/UNSUPPORTED COMMAND\n";
+                char *to_print = "-ERR\tUNKNOWN/UNSUPPORTED COMMAND\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
                                         clntAddrLen);
                 validate_sendto(num_bytes_sent, bytes_to_send);
             }
-            break;
+                break;
         }
 
 
