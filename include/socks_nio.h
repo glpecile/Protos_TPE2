@@ -15,6 +15,8 @@
 #include "capa_events.h"
 #include "request_events.h"
 #include "response_events.h"
+#include "transform_events.h"
+
 #define BUFFER_SIZE 128
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)
@@ -70,6 +72,7 @@ enum socks_state {
     CAPA_ST,
     REQUEST_ST,
     RESPONSE_ST,
+    TRANSFORM_ST,
     COPYING_ST,
     DONE_ST,
     ERROR_ST,
@@ -126,6 +129,8 @@ struct sock {
         struct response response;
 
     } orig;
+
+    struct transform transform;
 
     /** Buffers */
     buffer read_buffer;

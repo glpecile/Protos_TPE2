@@ -208,6 +208,12 @@ static const struct state_definition client_states[] = {
                 .on_write_ready = response_send,//Ya se obtiene la rta que hay que entregarle al cliente
         },
         {
+                .state = TRANSFORM_ST,
+                .on_arrival = transform_init,
+                .on_read_ready = transform_read,//Segundo ya que lee lo enviado por el transformer (aca se deberia enviar al cliente)
+                .on_write_ready = transform_send,//Primero ya q le envia al transformer el mail
+        },
+        {
                 .state = COPYING_ST,
                 .on_arrival = copy_init,
                 .on_read_ready = copy_r,
