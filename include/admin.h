@@ -10,21 +10,11 @@
 #include "./buffer.h"
 
 #define BUFFER_SIZE 64
+#define PASS_LEN 6
 
-//
-//enum command_enum {
-//    START, GET_STATS, GET_CURRENT_CON, SET_AUTH, SET_MEM_SPACE, SET_TIMEOUT, HELP
-//};
-//
-//struct current_command {
-//    enum command_enum command;
-//};
-//
-//typedef struct current_command *current_command;
-//
-//extern current_command current;
-
-struct admin{
+struct admin {
+    /** Admin Password */
+    char password[PASS_LEN + 1];
     /** Buffers */
     buffer read_buffer;
     uint8_t read_buffer_space[BUFFER_SIZE];
@@ -38,5 +28,7 @@ struct admin{
 void udp_read(struct selector_key *key);
 
 void udp_write(struct selector_key *key);
+
+void set_admin_password(struct admin *admin, char new_password[6]);
 
 #endif

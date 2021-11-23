@@ -11,6 +11,7 @@
 #include "./hello_events.h"
 #include "./socks_handler.h"
 #include "./stm.h"
+#include "./admin_utils.h"
 
 #define BUFFER_SIZE 64
 

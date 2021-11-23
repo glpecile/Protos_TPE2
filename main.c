@@ -30,6 +30,7 @@
 #include "./include/socks_nio.h"
 #include "./include/logger.h"
 #include "./include/admin.h"
+#include "./include/admin_utils.h"
 
 #define PENDING_CONNECTIONS 20
 #define INITIAL_ELEMENTS 1024
@@ -241,7 +242,6 @@ static int initialize_server(int port) {
     fd_selector selector = NULL;
     struct admin *admin = calloc(1, sizeof(struct admin));
 
-
     int server_ipv6 = -1;
     int server_ipv4 = -1;
     int udp_socket = -1;
@@ -249,6 +249,11 @@ static int initialize_server(int port) {
     if (admin == NULL) {
         goto finally;
     }
+    set_admin_password(admin, "000000");
+    if (initialize_stats() != 0) {
+        goto finally;
+    }
+
     /**
      * Creamos el socket para UDP
      */

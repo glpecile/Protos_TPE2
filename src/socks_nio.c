@@ -140,6 +140,7 @@ socks_passive_accept(struct selector_key *key) {
     if (selector_register(key->s, client, &handler, OP_WRITE, state) != SELECTOR_SUCCESS) {
         goto fail;
     }
+    stats_new_connection();
     fprintf(stdout, "New connection with client %d established", state->client_fd);
     return;
 
