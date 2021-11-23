@@ -44,6 +44,7 @@ unsigned request_read(struct selector_key *key){
 
     if(!buffer_can_write(request->req)){
         //TODO administar buffer si se lleno esperando las request del cliente
+        printf("no puedo escribir en el buffer\n");
     }
 
     uint8_t c;
@@ -54,13 +55,17 @@ unsigned request_read(struct selector_key *key){
         check_char(request,(char) c);
 
         if(request->lf || request->request_finished){
+            printf("request casi terminado\n");
             size_t size_can_read;
             uint8_t * read = buffer_read_ptr(request->req, &size_can_read);
             //quizas convenga avanzar el write en el buffer.
+            *(read + size_can_read) = '\0';
+            printf("la request es %s\n", read);
             struct cmd cmd;
             memcpy(cmd.cmd,read,size_can_read);
             queue(request->cmd_queue,cmd);
             if(request->request_finished){
+                printf("request terminado\n");
                 //cambio de interes en el selector
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key,OP_NOOP);
@@ -79,11 +84,11 @@ unsigned request_send(struct selector_key *key){
     printf("Soy el fd->%i\n", key->fd);
 
     struct request * request = &ATTACHMENT(key)->client.request;
-    unsigned ret = COPYING_ST; //En principio sigo en REQUEST_ST y con los mismos intereses.
+    unsigned ret = RESPONSE_ST; //En principio sigo en REQUEST_ST y con los mismos intereses.
 
     to_begin(request->cmd_queue);
     if(is_empty(request->cmd_queue)){
-        //TODO no hay comandos o pasamos al otro estado o lanzamos error
+        ret = ERROR_ST;
     }
     while(has_next(request->cmd_queue)){
         struct cmd command = next(request->cmd_queue);
