@@ -4,7 +4,11 @@
 
 int validate_password(char *to_parse, struct admin *admin_commands);
 
+int validate_options(char *to_parse);
+
 void validate_sendto(ssize_t sent, ssize_t to_send);
+
+int validate_get_parameters(char *to_parse);
 
 void udp_read(struct selector_key *key) {
     struct admin *admin_commands = ATTACHMENT_ADMIN(key);
@@ -37,11 +41,119 @@ void udp_write(struct selector_key *key) {
         bytes_to_send = (int) strlen(to_print);
         num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr, clntAddrLen);
         validate_sendto(num_bytes_sent, bytes_to_send);
+    } else {
+        switch (validate_options(to_parse)) {
+            case HELP: {
+                char *to_print = "~~ ADMIN HELP ~~\n"
+                                 "GET STATS \n"
+                                 "GET CURRENT_CON \n"
+                                 "SET PASS  \n"
+                                 "SET MEM_SPACE \n"
+                                 "SET TIMEOUT\n"
+                                 "HELP \n";
+                bytes_to_send = (int) strlen(to_print);
+                num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                        clntAddrLen);
+                validate_sendto(num_bytes_sent, bytes_to_send);
+            }
+            break;
+            case GET_BUFF_SIZE: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case GET_STATS: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case GET_CURRENT_CON: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case SET_TIMEOUT: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case SET_MEM_SPACE: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case SET_AUTH: {
+                int a = 1;
+                printf("%d\n", a);
+            }
+            break;
+            case NONE: {
+                char *to_print = "300 UNKNOWN/UNSUPPORTED COMMAND\n";
+                bytes_to_send = (int) strlen(to_print);
+                num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                        clntAddrLen);
+                validate_sendto(num_bytes_sent, bytes_to_send);
+            }
+            break;
+            default:
+                break;
+        }
+
+
     }
 //    buffer_read_adv(&admin_commands->read_buffer, num_bytes_sent);
     buffer_reset(&admin_commands->read_buffer);
     selector_set_interest_key(key, OP_READ);
 }
+
+void set_admin_password(struct admin *admin, char new_password[6]) {
+    strcpy(admin->password, new_password);
+}
+
+int validate_password(char *to_parse, struct admin *admin_commands) {
+    int i = 0;
+    while (to_parse[i] != ' ') {
+        if (admin_commands->password[i] != to_parse[i] || i >= PASS_LEN || to_parse[i] == '\0' || to_parse[i] == '\n') {
+            return -1;
+        }
+        i++;
+    }
+    if (i != PASS_LEN) return -1;
+    return 0;
+}
+
+int parse_options(char *to_parse, char *to_save, int offset) {
+    int i = offset, j = 0;
+    while (to_parse[i] != ' ' && to_parse[i] != '\0' && to_parse[i] != '\n') {
+        to_save[j++] = to_parse[i++];
+    }
+    to_save[j] = '\0';
+    return j;
+}
+
+enum options validate_options(char *to_parse) {
+    int offset = PASS_LEN + 1;
+    char option[30] = {0};
+    //int parsed = ;
+    parse_options(to_parse, option, offset);
+    if (strcmp("HELP", option) == 0) {
+        return HELP;
+    } else if (strcmp("GET_BUFF_SIZE", option) == 0) {
+        return GET_BUFF_SIZE;
+    } else if (strcmp("GET_STATS", option) == 0) {
+        return GET_STATS;
+    } else if (strcmp("GET_CURRENT_CON", option) == 0) {
+        return GET_CURRENT_CON;
+    } else if (strcmp("SET_AUTH", option) == 0) {
+        return SET_AUTH;
+    } else if (strcmp("SET_MEM_SPACE", option) == 0) {
+        return SET_MEM_SPACE;
+    } else if (strcmp("SET_TIMEOUT", option) == 0) {
+        return SET_TIMEOUT;
+    }
+    return NONE;
+}
+
 
 void validate_sendto(ssize_t sent, ssize_t to_send) {
     if (sent < 0) {
@@ -52,20 +164,3 @@ void validate_sendto(ssize_t sent, ssize_t to_send) {
         exit(1);
     }
 }
-
-void set_admin_password(struct admin *admin, char new_password[6]) {
-    strcpy(admin->password, new_password);
-}
-
-int validate_password(char *to_parse, struct admin *admin_commands) {
-    int i = 0;
-    while (to_parse[i] != ' ') {
-        if (admin_commands->password[i] != to_parse[i] || i >= PASS_LEN || to_parse[i] == '\0') {
-            return -1;
-        }
-        i++;
-    }
-    if (i != PASS_LEN) return -1;
-    return 0;
-}
-
