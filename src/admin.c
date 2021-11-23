@@ -8,7 +8,7 @@ int validate_options(char *to_parse);
 
 void validate_sendto(ssize_t sent, ssize_t to_send);
 
-int validate_get_parameters(char *to_parse);
+int parse_get_set_arguments(char *to_parse, char *to_fill);
 
 void udp_read(struct selector_key *key) {
     struct admin *admin_commands = ATTACHMENT_ADMIN(key);
@@ -104,8 +104,23 @@ void udp_write(struct selector_key *key) {
             }
                 break;
             case SET_AUTH: {
-                int a = 1;
-                printf("%d\n", a);
+                char *parameter = calloc(1, sizeof(char) * 30);
+                int length = parse_get_set_arguments(to_parse, parameter);
+                if (length != PASS_LEN) {
+                    char *to_print = "-ERR\tINCORRECT ARGUMENT FOR COMMAND\n";
+                    bytes_to_send = (int) strlen(to_print);
+                    num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                            clntAddrLen);
+                    validate_sendto(num_bytes_sent, bytes_to_send);
+                } else {
+                    set_admin_password(admin_commands, parameter);
+                    char *to_print = "-OK\n";
+                    bytes_to_send = (int) strlen(to_print);
+                    num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
+                                            clntAddrLen);
+                    validate_sendto(num_bytes_sent, bytes_to_send);
+                }
+                free(parameter);
             }
                 break;
             default: {
@@ -128,6 +143,7 @@ void udp_write(struct selector_key *key) {
 void set_admin_password(struct admin *admin, char new_password[6]) {
     strcpy(admin->password, new_password);
 }
+
 
 int validate_password(char *to_parse, struct admin *admin_commands) {
     int i = 0;
@@ -182,4 +198,16 @@ void validate_sendto(ssize_t sent, ssize_t to_send) {
         fprintf(stderr, "sendto() sent unexpected number of bytes.\n");
         exit(1);
     }
+}
+
+int parse_get_set_arguments(char *to_parse, char *to_fill) {
+    int offset = (int) (strrchr(to_parse, ' ') - to_parse);
+    if (offset <= 0) return -1;
+    offset++; //pues esta en ' '
+    int i = 0;
+    while (to_parse[offset] != '\n' && to_parse[offset] != '\0') {
+        to_fill[i++] = to_parse[offset++];
+    }
+    to_fill[i] = '\0';
+    return i;
 }
