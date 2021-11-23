@@ -14,7 +14,7 @@
 #include "stm.h"
 #include "capa_events.h"
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 128
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))

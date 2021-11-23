@@ -35,6 +35,7 @@ void capa_init(const unsigned tate, struct selector_key *key) {
 
     d->pipelining = false;
     d->res = &ATTACHMENT(key)->write_buffer;//TODO chequear si corresponde
+    buffer_reset(d->res);
     d->first_cr = false;
     d->second_cr = false;
     d->dot = false;
