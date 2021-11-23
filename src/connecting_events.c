@@ -37,8 +37,8 @@ connecting(struct selector_key *key) {
     }
 
      selector_status ss = SELECTOR_SUCCESS;
-    ss |= selector_set_interest_key(key, OP_WRITE);
+    ss |= selector_set_interest_key(key, OP_WRITE); //TODO esto tiene que cambiar a read
     ss |= selector_set_interest(key->s, d->client_fd, OP_NOOP);
 
-    return SELECTOR_SUCCESS == ss ? COPYING_ST : ERROR_ST;
+    return SELECTOR_SUCCESS == ss ? GREETINGS_ST : ERROR_ST;
 }

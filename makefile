@@ -6,7 +6,7 @@ all: main
 clean:
 	- rm -f *.o  main
 
-COMMON =  ./src/args.c ./src/buffer.c src/connecting_events.c src/copy_events.c ./src/dns_resolution_events.c ./src/hello.c ./src/logger.c ./src/netutils.c ./src/parser.c ./src/parser_utils.c ./src/request.c ./src/selector.c ./src/socks_handler.c ./src/socks_nio.c ./src/stm.c
+COMMON =  ./src/args.c ./src/buffer.c ./src/capa_events.c src/connecting_events.c src/copy_events.c ./src/dns_resolution_events.c ./src/greetings_events.c ./src/hello.c ./src/logger.c ./src/netutils.c ./src/parser.c ./src/parser_utils.c ./src/request.c ./src/selector.c ./src/socks_handler.c ./src/socks_nio.c ./src/stm.c ./src/cmd_queue.c
 main:
 	$(COMPILER) $(CFLAGS) -o main ./main.c $(COMMON) $(LIBS)
 

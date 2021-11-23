@@ -4,15 +4,17 @@
 #include <sys/socket.h>
 #include <stdint.h>
 
-#include "./buffer.h"
+#include "buffer.h"
 #include "connecting_events.h"
 #include "copy_events.h"
-#include "./hello.h"
-#include "./hello_events.h"
-#include "./socks_handler.h"
-#include "./stm.h"
+#include "greetings_events.h"
+#include "hello.h"
+#include "hello_events.h"
+#include "socks_handler.h"
+#include "stm.h"
+#include "capa_events.h"
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE 128
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))
@@ -63,6 +65,8 @@
 enum socks_state {
     DNS_RESOLUTION_ST,
     CONNECTING_ST,
+    GREETINGS_ST,
+    CAPA_ST,
     COPYING_ST,
     DONE_ST,
     ERROR_ST,
@@ -112,7 +116,10 @@ struct sock {
     /** Estados para el origin_fd */
     union {
         struct connecting conn;
+        struct greetings greet;
         struct copy copy;
+        struct capa capa;
+
     } orig;
 
     /** Buffers */
