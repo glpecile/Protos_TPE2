@@ -20,6 +20,15 @@ La compilación se realiza con el siguiente comando:
 make all
 ```
 
+## Ejecución
+
+En el mismo directorio luego de la compilación se encuentra el archivo ejecutable `main`. Para ejecutar el mismo
+```bash
+./main <opciones> [Origin Server]
+```
+A modo de conectarse con el protocolo UDP diseñado se tiene que establecer una conexión con el puerto 9090, donde
+la contraseña por defecto es 000000.
+
 ## Testeo
 Para el testeo tanto con **Cppcheck** como **Valgrind**. Correr el siguiente comando:
 
