@@ -13,8 +13,10 @@
 #include "socks_handler.h"
 #include "stm.h"
 #include "capa_events.h"
-#include "request_events.h"
 #include "response_events.h"
+#include "request_events.h"
+#include "./admin_utils.h"
+
 #define BUFFER_SIZE 128
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)

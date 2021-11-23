@@ -126,6 +126,7 @@ copy_w(struct selector_key *key) {
             d->other->duplex &= -OP_READ;
         }
     } else {
+        add_transfered_bytes((int) n);
         buffer_read_adv(b, n);
     }
 
