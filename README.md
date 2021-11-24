@@ -17,7 +17,7 @@ El objetivo del TPE2 es la implementación de un proxy que hace uso del protocol
 La compilación se realiza con el siguiente comando:
 
 ```bash
-make all
+make
 ```
 
 ## Ejecución
@@ -30,9 +30,9 @@ se encuentran los archivos ejecutables:
 
 Para ejecutar los mismos:
 ```bash
-./pop3filter <comando> [Origin Server]
+./pop3filter <comando> [origin_server]
 ```
-Las opciones disponibles para ingresar son las siguientes:
+Los comandos disponibles para ingresar son las siguientes:
 
 | Comandos |  Descripcion | 
 |----| -------------------------------------------------------------------------------------------------------------------------- |
