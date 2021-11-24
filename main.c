@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include <errno.h>
 #include <signal.h>
@@ -275,7 +276,7 @@ static int initialize_server(int port) {
 
     // Tipo de socket address creado
     udp_address.sin_family = AF_INET;
-    udp_address.sin_addr.s_addr = INADDR_ANY;
+    udp_address.sin_addr.s_addr = inet_addr(parameters->management_address);
     udp_address.sin_port = htons(parameters->management_port);
 
     // Bindeamos socket udp.

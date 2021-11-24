@@ -15,6 +15,8 @@ COMMON =  ./src/admin.o src/admin_utils.o ./src/args.o ./src/buffer.o ./src/capa
 
 main: $(COMMON)
 	$(COMPILER) $(CFLAGS) -o pop3filter ./main.c $(COMMON) $(LIBS)
+		rm -f src/*.o
+
 
 client: $(COMMON)
 	$(COMPILER) $(CFLAGS) -o pop3ctl ./client/admin_client.c $(LIBS)
