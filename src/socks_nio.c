@@ -73,20 +73,18 @@ static struct sock *socks_new(int client_fd) {
 /** realmente destruye */
 static void
 socks_destroy_(struct sock *s) {
-    printf("Destroy\n");
     if (s->origin_resolution != NULL) {
         freeaddrinfo(s->origin_resolution);
         s->origin_resolution = 0;
     }
     if (s->client.request.cmd_queue != NULL) {
-        printf("Destroy queue\n");
         free_queue(s->client.request.cmd_queue);
     }
     free(s);
 }
 
 /**
- * destruye un  `struct socks5', tiene en cuenta las referencias
+ * destruye un  `struct socks', tiene en cuenta las referencias
  * y el pool de objetos.
  */
 void
@@ -100,6 +98,7 @@ socks_destroy(struct sock *s) {
                 s->next = pool;
                 pool = s;
                 pool_size++;
+                s->references--;
             } else {
                 socks_destroy_(s);
             }
@@ -159,7 +158,6 @@ socks_passive_accept(struct selector_key *key) {
 
     socks_destroy(state);
 }
-
 /**
  * Definición de handlers para cada estado.
 */

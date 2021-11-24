@@ -61,6 +61,7 @@ void response_init(const unsigned state, struct selector_key *key) {
     response->response_finished = false;
     response->next_cmd_multiline = false;
     response->res = &ATTACHMENT(key)->write_buffer;
+    response->command_id = -1;
 }
 
 unsigned response_read(struct selector_key *key) {
@@ -88,6 +89,7 @@ unsigned response_read(struct selector_key *key) {
         int dq = dequeue(ATTACHMENT(key)->client.request.cmd_queue, &cmd);
         while (count < bytes_read && dq) {
             response->next_cmd_multiline = cmd.multiline;
+            response->command_id = cmd.cmd_id;
             check_char(response, (char) *write);
             count++;
             write++;
@@ -106,8 +108,6 @@ unsigned response_read(struct selector_key *key) {
 }
 
 unsigned response_send(struct selector_key *key) {
-    log(DEBUG, "%s", "Entramos al response_send");
-    log(DEBUG, "Soy el fd->%i", key->fd);
 
     struct response *response = &ATTACHMENT(key)->orig.response;
     unsigned ret = RESPONSE_ST;//En principio si sale bien vamos al copying
@@ -123,7 +123,7 @@ unsigned response_send(struct selector_key *key) {
         bytes_write = send(ATTACHMENT(key)->client_fd, read, size_to_read, 0);
         if (bytes_write <= 0) {
             ret = ERROR_ST;
-            log(ERROR, "%s", "Error al enviar");
+            log(ERROR, "%s", "Error when trying to send bytes to client\n")
         } else {
             buffer_read_adv(response->res, bytes_write);
             //cambio de intereses para volver al request
@@ -133,8 +133,11 @@ unsigned response_send(struct selector_key *key) {
             //dejo el origin en read por el response state
             ss |= selector_set_interest_key(key, OP_NOOP);
             int fd = response->response_finished ? ATTACHMENT(key)->client_fd : ATTACHMENT(key)->origin_fd;
-
-            ret = response->response_finished ? REQUEST_ST : RESPONSE_ST;
+            if(response->command_id == QUIT){
+                ret = DONE_ST;
+            }else{
+                ret = response->response_finished ? REQUEST_ST : RESPONSE_ST;
+            }
             ss |= selector_set_interest(key->s, fd, OP_READ);
             ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
         }

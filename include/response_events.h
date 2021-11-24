@@ -12,6 +12,7 @@ struct response{
     bool second_cr;
     bool response_finished;
     bool next_cmd_multiline;
+    int command_id;
 
 };
 
