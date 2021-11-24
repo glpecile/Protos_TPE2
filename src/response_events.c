@@ -64,9 +64,6 @@ void response_init(const unsigned state, struct selector_key *key) {
 }
 
 unsigned response_read(struct selector_key *key) {
-    printf("Entramos al response_read\n");
-    printf("Soy el fd->%i\n", key->fd);
-
     struct response *response = &ATTACHMENT(key)->orig.response;
     unsigned ret = RESPONSE_ST; //En principio me quedo en este estado hasta que termine de enviar toda la respuesta recibida.
     struct cmd cmd;
@@ -89,31 +86,37 @@ unsigned response_read(struct selector_key *key) {
     }
 
     ssize_t bytes_read;
-
+    size_t size_can_write;
     if (!buffer_can_write(response->res)) {
         //Flushing de lo que tengo.
         selector_status ss = SELECTOR_SUCCESS;
         ss |= selector_set_interest_key(key, OP_NOOP);
         ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
         ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-        printf("flushing\n");
         return ret;
     }
+    uint8_t * write = buffer_write_ptr(response->res, &size_can_write);
 
-    uint8_t c;
-    bytes_read = recv(ATTACHMENT(key)->origin_fd, (char *) &c, 1, 0);
+    bytes_read = recv(ATTACHMENT(key)->origin_fd, (char *) write, size_can_write, 0);
     if (bytes_read <= 0) {
         ret = ERROR_ST;
     } else {
-        check_char(response, (char) c);
-        if (response->response_finished) {
-            //cambio de interes en el selector para ir a escribirle al cliente
-            selector_status ss = SELECTOR_SUCCESS;
-            ss |= selector_set_interest_key(key, OP_NOOP);
-            ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
-            ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+        buffer_write_adv(response->res,bytes_read);
+        size_t size_can_read;
+        uint8_t * aux_read = buffer_read_ptr(response->res,&size_can_read);
+        size_t count = 0;
+        while(count<size_can_read){
+            check_char(response, (char) *aux_read);
+            count++;
+            aux_read++;
+            if (response-> response_finished) {
+                //cambio de interes en el selector para ir a escribirle al cliente
+                selector_status ss = SELECTOR_SUCCESS;
+                ss |= selector_set_interest_key(key, OP_NOOP);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
+                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+            }
         }
-        buffer_write(response->res, c);
     }
     return ret;
 }
@@ -130,11 +133,13 @@ unsigned response_send(struct selector_key *key) {
     if (!buffer_can_read(response->res)) {
         //vuelvo al response read para ver si quedan cosas por leer.
         ret = ERROR_ST;
+        printf("No se puede escribir\n");
     } else {
         uint8_t *read = buffer_read_ptr(response->res, &size_to_read);
         bytes_write = send(ATTACHMENT(key)->client_fd, read, size_to_read, 0);
         if (bytes_write <= 0) {
             ret = ERROR_ST;
+            printf("Error al enviar\n");
         } else {
             buffer_read_adv(response->res, bytes_write);
             if (response->response_finished) {
