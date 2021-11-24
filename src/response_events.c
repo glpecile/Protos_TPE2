@@ -133,11 +133,7 @@ unsigned response_send(struct selector_key *key) {
             //dejo el origin en read por el response state
             ss |= selector_set_interest_key(key, OP_NOOP);
             int fd = response->response_finished ? ATTACHMENT(key)->client_fd : ATTACHMENT(key)->origin_fd;
-            if(response->command_id == QUIT){
-                ret = DONE_ST;
-            }else{
-                ret = response->response_finished ? REQUEST_ST : RESPONSE_ST;
-            }
+            ret = response->response_finished ? REQUEST_ST : RESPONSE_ST;
             ss |= selector_set_interest(key->s, fd, OP_READ);
             ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
         }
