@@ -75,42 +75,38 @@ request_read(struct selector_key *key) {
     unsigned ret = REQUEST_ST; //En principio sigo en REQUEST_ST y con los mismos intereses.
 
     ssize_t bytes_read;
-
-    if (!buffer_can_write(request->req)) {
-        //TODO administar buffer si se lleno esperando las request del cliente
-        printf("no puedo escribir en el buffer\n");
-    }
-
-    uint8_t c;
-    bytes_read = recv(ATTACHMENT(key)->client_fd, (char *) &c, 1, 0);
+    size_t size_can_write;
+    uint8_t * write = buffer_write_ptr(request->req, &size_can_write);
+    bytes_read = recv(ATTACHMENT(key)->client_fd, (char *) write, size_can_write, 0);
     if (bytes_read <= 0) {
         ret = ERROR_ST;
     } else {
-        check_char(request, (char) c);
-
-        if (request->lf || request->request_finished) {
-            printf("request casi terminado\n");
-            size_t size_can_read;
-            buffer_write(request->req, c);
-            uint8_t *read = buffer_read_ptr(request->req, &size_can_read);
-            //quizas convenga avanzar el write en el buffer.
-            *(read + size_can_read) = '\0';
-            printf("la request es %s\n", read);
-            struct cmd cmd;
-            cmd.cmd_size = size_can_read - request->lf - request->cr;
-            memcpy(cmd.cmd, read, cmd.cmd_size);
-            parse_cmd(&cmd);
-            queue(request->cmd_queue, cmd);
-            if (request->request_finished) {
-                printf("request terminado\n");
-                //cambio de interes en el selector
-                selector_status ss = SELECTOR_SUCCESS;
-                ss |= selector_set_interest_key(key, OP_NOOP);
-                ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
-                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+//        check_buffer(request,write,bytes_read);
+        bool flag = false;
+        size_t i;
+        buffer_write_adv(request->req,bytes_read);
+        uint8_t c;
+        uint8_t * br_first = buffer_read_ptr(request->req,&i);
+        int size = 0;
+        while((c = buffer_read(request->req))){
+            check_char(request, (char) c);
+            flag = request->lf || request->request_finished;
+            size ++;
+            if(flag){
+                struct cmd cmd;
+                cmd.cmd_size = size + 1 - request->lf - request->cr;
+                memcpy(cmd.cmd, br_first, cmd.cmd_size);
+                parse_cmd(&cmd);
+                queue(request->cmd_queue, cmd);
+                if (request->request_finished || !buffer_can_write(request->req)) {
+                    //cambio de interes en el selector
+                    selector_status ss = SELECTOR_SUCCESS;
+                    ss |= selector_set_interest_key(key, OP_NOOP);
+                    ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
+                    ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+                }
             }
-        } else {
-            buffer_write(request->req, c);
+
         }
     }
     return ret;

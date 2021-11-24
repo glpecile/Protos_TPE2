@@ -8,8 +8,6 @@
 #include "connecting_events.h"
 #include "copy_events.h"
 #include "greetings_events.h"
-#include "hello.h"
-#include "hello_events.h"
 #include "socks_handler.h"
 #include "stm.h"
 #include "capa_events.h"
@@ -17,7 +15,7 @@
 #include "request_events.h"
 #include "./admin_utils.h"
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 4096
 
 #define ATTACHMENT(key) ((struct sock *)(key)->data)
 #define N(x) (sizeof(x)/sizeof((x)[0]))

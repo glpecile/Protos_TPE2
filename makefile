@@ -11,7 +11,7 @@ all: main
 clean:
 	- rm -f *.o  main
 
-COMMON =  ./src/admin.o src/admin_utils.o ./src/args.o ./src/buffer.o ./src/capa_events.o src/connecting_events.o src/copy_events.o ./src/dns_resolution_events.o ./src/greetings_events.o ./src/hello.o ./src/logger.o ./src/netutils.o ./src/parser.o ./src/parser_utils.o  ./src/request_events.o ./src/response_events.o ./src/selector.o ./src/socks_handler.o ./src/socks_nio.o ./src/stm.o ./src/cmd_queue.o
+COMMON =  ./src/admin.o src/admin_utils.o ./src/args.o ./src/buffer.o ./src/capa_events.o src/connecting_events.o src/copy_events.o ./src/dns_resolution_events.o ./src/greetings_events.o  ./src/logger.o ./src/netutils.o ./src/parser.o ./src/parser_utils.o  ./src/request_events.o ./src/response_events.o ./src/selector.o ./src/socks_handler.o ./src/socks_nio.o ./src/stm.o ./src/cmd_queue.o
 
 main: $(COMMON)
 	$(COMPILER) $(CFLAGS) -o pop3filter ./main.c $(COMMON) $(LIBS)

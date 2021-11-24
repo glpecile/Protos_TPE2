@@ -77,6 +77,8 @@ socks_destroy_(struct sock *s) {
         freeaddrinfo(s->origin_resolution);
         s->origin_resolution = 0;
     }
+    if(s->client.request.cmd_queue != NULL)
+        free_queue(s->client.request.cmd_queue);
     free(s);
 }
 
@@ -108,7 +110,7 @@ socks_pool_destroy(void) {
     struct sock *next, *s;
     for (s = pool; s != NULL; s = next) {
         next = s->next;
-        free(s);
+        socks_destroy_(s);
     }
 }
 
