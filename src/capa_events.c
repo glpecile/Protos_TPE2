@@ -48,8 +48,6 @@ void capa_init(const unsigned tate, struct selector_key *key) {
  * Se lee la respuesta al comando CAPA provista por el origin server.
  */
 unsigned capa_read(struct selector_key *key) {
-    log(DEBUG, "%s", "Entramos al capa_read");
-    log(DEBUG, "Soy el fd->%i", key->fd);
     struct capa *d = &ATTACHMENT(key)->orig.capa;
     unsigned ret = REQUEST_ST;
     //Variables necesarias para los buffers
@@ -70,7 +68,6 @@ unsigned capa_read(struct selector_key *key) {
             //si encuentra el pipelining se setea el flag
             uint8_t *read = buffer_read_ptr(d->res, &size_can_write);
             if (strstr((char *) read, PIPELINING) != NULL) {
-                log(DEBUG, "%s", "Pipelining encontrado");
                 d->pipelining = true;
             }
             buffer_reset(d->res);
@@ -78,9 +75,7 @@ unsigned capa_read(struct selector_key *key) {
             ss |= selector_set_interest_key(key, OP_NOOP);
             ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
             ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-            log(DEBUG, "%s", "Probando");
         } else {
-            log(DEBUG, "%s", "Nunca entramos al capa_finished");
             ret = CAPA_ST;
         }
 
@@ -93,8 +88,6 @@ unsigned capa_read(struct selector_key *key) {
  * Se envia el comando CAPA al origen para determinar si acepta pipelining.
 */
 unsigned capa_send(struct selector_key *key) {
-    log(DEBUG, "%s", "Entramos al capa_send");
-    log(DEBUG, "Soy el fd->%i", key->fd);
     const char *to_send = "CAPA\r\n";
     unsigned ret = CAPA_ST;
 
@@ -105,7 +98,6 @@ unsigned capa_send(struct selector_key *key) {
         selector_status ss = SELECTOR_SUCCESS;
         ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
         ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-        log(DEBUG, "Cambiamos de interes a %i", ret);
     }
     return ret;
 }

@@ -43,8 +43,6 @@ greetings_init(const unsigned state, struct selector_key *key) {
  */
 unsigned
 greetings_read(struct selector_key *key) {
-    log(DEBUG, "%s", "Entramos al greetings_read");
-    log(DEBUG, "Soy el fd->%i", key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
@@ -91,8 +89,6 @@ greetings_read(struct selector_key *key) {
 
 unsigned
 greetings_write(struct selector_key *key) {
-    log(DEBUG, "%s", "Entramos al greetings_write");
-    log(DEBUG, "Soy el fd->%i", key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
