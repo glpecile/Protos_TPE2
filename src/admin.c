@@ -30,7 +30,6 @@ void udp_read(struct selector_key *key) {
 void udp_write(struct selector_key *key) {
     struct admin *admin_commands = ATTACHMENT_ADMIN(key);
     struct sockaddr_storage clntAddr;            // Client address
-    socklen_t clntAddrLen = sizeof(clntAddr);
     size_t size_can_read;
     char *to_parse = (char *) buffer_read_ptr(&admin_commands->read_buffer, &size_can_read);
     int bytes_to_send = (int) size_can_read;
@@ -38,7 +37,7 @@ void udp_write(struct selector_key *key) {
     if (validate_password(to_parse, admin_commands) != 0) {
         char *to_print = "-ERR\tUNAUTHORIZED (INVALID AUTH_ID)\n";
         bytes_to_send = (int) strlen(to_print);
-        num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr, clntAddrLen);
+        num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr, sizeof(clntAddr));
         validate_sendto(num_bytes_sent, bytes_to_send);
     } else {
         switch (validate_options(to_parse)) {
@@ -52,7 +51,7 @@ void udp_write(struct selector_key *key) {
                                  " - HELP\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                        clntAddrLen);
+                                        sizeof(clntAddr));
                 validate_sendto(num_bytes_sent, bytes_to_send);
             }
                 break;
@@ -62,7 +61,7 @@ void udp_write(struct selector_key *key) {
                 sprintf(to_print, "+OK\t %d\n", buff_size);
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                        clntAddrLen);
+                                        sizeof(clntAddr));
                 validate_sendto(num_bytes_sent, bytes_to_send);
                 free(to_print);
             }
@@ -72,7 +71,7 @@ void udp_write(struct selector_key *key) {
                     char *to_print = "-ERR\tUNKNOWN ERROR\n";
                     bytes_to_send = (int) strlen(to_print);
                     num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                            clntAddrLen);
+                                            sizeof(clntAddr));
                     validate_sendto(num_bytes_sent, bytes_to_send);
                 } else {
                     char *to_print = calloc(1, 100 * sizeof(char));
@@ -80,7 +79,7 @@ void udp_write(struct selector_key *key) {
                             stats->curent_connections, stats->bytes_transfered);
                     bytes_to_send = (int) strlen(to_print);
                     num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                            clntAddrLen);
+                                            sizeof(clntAddr));
                     validate_sendto(num_bytes_sent, bytes_to_send);
                     free(to_print);
                 }
@@ -93,14 +92,14 @@ void udp_write(struct selector_key *key) {
                     char *to_print = "-ERR\tINCORRECT ARGUMENT FOR COMMAND\n";
                     bytes_to_send = (int) strlen(to_print);
                     num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                            clntAddrLen);
+                                            sizeof(clntAddr));
                     validate_sendto(num_bytes_sent, bytes_to_send);
                 } else {
                     set_admin_password(admin_commands, parameter);
                     char *to_print = "-OK\n";
                     bytes_to_send = (int) strlen(to_print);
                     num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                            clntAddrLen);
+                                            sizeof(clntAddr));
                     validate_sendto(num_bytes_sent, bytes_to_send);
                 }
                 free(parameter);
@@ -110,7 +109,7 @@ void udp_write(struct selector_key *key) {
                 char *to_print = "-ERR\tUNKNOWN/UNSUPPORTED COMMAND\n";
                 bytes_to_send = (int) strlen(to_print);
                 num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,
-                                        clntAddrLen);
+                                        sizeof(clntAddr));
                 validate_sendto(num_bytes_sent, bytes_to_send);
             }
                 break;
@@ -170,10 +169,8 @@ enum options validate_options(char *to_parse) {
 void validate_sendto(ssize_t sent, ssize_t to_send) {
     if (sent < 0) {
         fprintf(stderr, "sendto() failed.\n");
-        exit(1);
     } else if (sent != to_send) {
         fprintf(stderr, "sendto() sent unexpected number of bytes.\n");
-        exit(1);
     }
 }
 

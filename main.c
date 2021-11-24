@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include <errno.h>
 #include <signal.h>
@@ -23,7 +24,6 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>  // socket
-
 #include "./include/selector.h"
 #include "./include/args.h"
 #include "./include/buffer.h"
@@ -258,6 +258,8 @@ static int initialize_server(int port) {
      * Creamos el socket para UDP
      */
     struct sockaddr_in udp_address;
+    memset(&udp_address, 0, sizeof(udp_address));
+
     int upd_socket_type = SOCK_DGRAM;
     int opt = TRUE;
 
@@ -274,7 +276,7 @@ static int initialize_server(int port) {
 
     // Tipo de socket address creado
     udp_address.sin_family = AF_INET;
-    udp_address.sin_addr.s_addr = INADDR_ANY;
+    udp_address.sin_addr.s_addr = inet_addr(parameters->management_address);
     udp_address.sin_port = htons(parameters->management_port);
 
     // Bindeamos socket udp.
