@@ -99,14 +99,19 @@ unsigned response_read(struct selector_key *key) {
         return ret;
     }
     uint8_t * write = buffer_write_ptr(response->res, &size_can_write);
+
     bytes_read = recv(ATTACHMENT(key)->origin_fd, (char *) write, size_can_write, 0);
     if (bytes_read <= 0) {
         ret = ERROR_ST;
     } else {
         buffer_write_adv(response->res,bytes_read);
-        uint8_t c;
-        while((c = buffer_read(response->res))){
-            check_char(response, (char) c);
+        size_t size_can_read;
+        uint8_t * aux_read = buffer_read_ptr(response->res,&size_can_read);
+        size_t count = 0;
+        while(count<size_can_read){
+            check_char(response, (char) *aux_read);
+            count++;
+            aux_read++;
             if (response-> response_finished) {
                 //cambio de interes en el selector para ir a escribirle al cliente
                 selector_status ss = SELECTOR_SUCCESS;
@@ -131,11 +136,13 @@ unsigned response_send(struct selector_key *key) {
     if (!buffer_can_read(response->res)) {
         //vuelvo al response read para ver si quedan cosas por leer.
         ret = ERROR_ST;
+        printf("No se puede escribir\n");
     } else {
         uint8_t *read = buffer_read_ptr(response->res, &size_to_read);
         bytes_write = send(ATTACHMENT(key)->client_fd, read, size_to_read, 0);
         if (bytes_write <= 0) {
             ret = ERROR_ST;
+            printf("Error al enviar\n");
         } else {
             buffer_read_adv(response->res, bytes_write);
             if (response->response_finished) {
