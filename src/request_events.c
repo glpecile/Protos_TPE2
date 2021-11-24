@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #include "../include/request_events.h"
@@ -68,9 +67,6 @@ request_init(const unsigned state, struct selector_key *key) {
  */
 unsigned
 request_read(struct selector_key *key) {
-    printf("Entramos al request_read\n");
-    printf("Soy el fd->%i\n", key->fd);
-
     struct request *request = &ATTACHMENT(key)->client.request;
     unsigned ret = REQUEST_ST; //En principio sigo en REQUEST_ST y con los mismos intereses.
 
@@ -114,9 +110,6 @@ request_read(struct selector_key *key) {
 
 unsigned
 request_send(struct selector_key *key) {
-    printf("Entramos al request_send\n");
-    printf("Soy el fd->%i\n", key->fd);
-
     struct request *request = &ATTACHMENT(key)->client.request;
     unsigned ret = RESPONSE_ST; //En principio sigo en REQUEST_ST y con los mismos intereses.
 
