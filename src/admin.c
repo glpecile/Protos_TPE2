@@ -75,7 +75,7 @@ void udp_write(struct selector_key *key) {
                     validate_sendto(num_bytes_sent, bytes_to_send);
                 } else {
                     char *to_print = calloc(1, 100 * sizeof(char));
-                    sprintf(to_print, "+OK\t%d\t%d\t%d\n", stats->historic_connections,
+                    sprintf(to_print, "+OK\t%d\t%d\t%ld\n", stats->historic_connections,
                             stats->curent_connections, stats->bytes_transfered);
                     bytes_to_send = (int) strlen(to_print);
                     num_bytes_sent = sendto(key->fd, to_print, bytes_to_send, 0, (struct sockaddr *) &clntAddr,

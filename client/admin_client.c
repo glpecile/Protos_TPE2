@@ -18,8 +18,8 @@ int main() {
         printf("Error connecting client socket");
         exit(0);
     }
-    printf("Connection with server successfully established.\n"
-           "Insert 'quit' to close the connection.");
+    printf("Connection with server successfully established.\n");
+    printf("Insert 'quit' to close the connection or <password> HELP to get available commands.\n");
     while(1) {
         if ((read_message->amount = (int) read(STDIN_FILENO, read_message->buffer, BUFF_SIZE)) < 0) {
             printf("Nothing to read");

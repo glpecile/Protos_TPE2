@@ -471,6 +471,7 @@ static int initialize_server(int port) {
         free(admin);
     }
     free(parameters);
+    close_stats();
     printf("closing main safely...\n");
     return ret;
 }

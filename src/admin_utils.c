@@ -21,7 +21,7 @@ void stats_closed_connection() {
     stats->curent_connections -= 1;
 }
 
-void add_transfered_bytes(int amount) {
+void add_transfered_bytes(long amount) {
     stats->bytes_transfered += amount;
 }
 

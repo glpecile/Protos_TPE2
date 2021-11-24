@@ -72,7 +72,7 @@ request_read(struct selector_key *key) {
 
     ssize_t bytes_read;
     size_t size_can_write;
-    uint8_t * write = buffer_write_ptr(request->req, &size_can_write);
+    uint8_t *write = buffer_write_ptr(request->req, &size_can_write);
     bytes_read = recv(ATTACHMENT(key)->client_fd, (char *) write, size_can_write, 0);
     if (bytes_read <= 0) {
         ret = ERROR_ST;
@@ -80,15 +80,15 @@ request_read(struct selector_key *key) {
 //        check_buffer(request,write,bytes_read);
         bool flag = false;
         size_t i;
-        buffer_write_adv(request->req,bytes_read);
+        buffer_write_adv(request->req, bytes_read);
         uint8_t c;
-        uint8_t * br_first = buffer_read_ptr(request->req,&i);
+        uint8_t *br_first = buffer_read_ptr(request->req, &i);
         int size = 0;
-        while((c = buffer_read(request->req))){
+        while ((c = buffer_read(request->req))) {
             check_char(request, (char) c);
             flag = request->lf || request->request_finished;
-            size ++;
-            if(flag){
+            size++;
+            if (flag) {
                 struct cmd cmd;
                 cmd.cmd_size = size + 1 - request->lf - request->cr;
                 memcpy(cmd.cmd, br_first, cmd.cmd_size);
@@ -133,6 +133,7 @@ request_send(struct selector_key *key) {
             ret = ERROR_ST;
             return ret;
         }
+        stats->bytes_transfered += command.cmd_size + 1; //por el '\n'
     }
     //cambio de interes en el selector
     selector_status ss = SELECTOR_SUCCESS;

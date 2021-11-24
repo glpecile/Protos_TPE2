@@ -8,6 +8,7 @@
 #include "buffer.h"
 #include "cmd_queue.h"
 #include "selector.h"
+#include "admin_utils.h"
 
 struct request{
     buffer * req;

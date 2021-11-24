@@ -88,6 +88,7 @@ socks_destroy_(struct sock *s) {
  */
 void
 socks_destroy(struct sock *s) {
+    //TODO poner el stats_closed_connection() donde corresponda para decrementar la cantidad de conexiones concurrentes.
     if (s == NULL) {
         // nada para hacer
     } else if (s->references == 1) {

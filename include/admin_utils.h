@@ -3,10 +3,11 @@
 
 #include <stdlib.h>
 
- struct udp_stats{
+
+struct udp_stats{
     int historic_connections;
     int curent_connections;
-    int bytes_transfered;
+    long bytes_transfered;
 };
 
 typedef struct udp_stats * udp_stats;
@@ -24,7 +25,7 @@ void stats_new_connection();
  */
 void stats_closed_connection();
 
-void add_transfered_bytes(int amount);
+void add_transfered_bytes(long amount);
 
 void close_stats();
 

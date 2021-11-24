@@ -17,7 +17,6 @@ main: $(COMMON)
 	$(COMPILER) $(CFLAGS) -o pop3filter ./main.c $(COMMON) $(LIBS)
 		rm -f src/*.o
 
-
 client: $(COMMON)
 	$(COMPILER) $(CFLAGS) -o pop3ctl ./client/admin_client.c $(LIBS)
 
