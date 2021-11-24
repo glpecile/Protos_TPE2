@@ -64,9 +64,6 @@ void response_init(const unsigned state, struct selector_key *key) {
 }
 
 unsigned response_read(struct selector_key *key) {
-    printf("Entramos al response_read\n");
-    printf("Soy el fd->%i\n", key->fd);
-
     struct response *response = &ATTACHMENT(key)->orig.response;
     unsigned ret = RESPONSE_ST; //En principio me quedo en este estado hasta que termine de enviar toda la respuesta recibida.
     struct cmd cmd;
