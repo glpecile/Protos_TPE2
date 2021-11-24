@@ -23,7 +23,6 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>  // socket
-
 #include "./include/selector.h"
 #include "./include/args.h"
 #include "./include/buffer.h"
@@ -258,6 +257,8 @@ static int initialize_server(int port) {
      * Creamos el socket para UDP
      */
     struct sockaddr_in udp_address;
+    memset(&udp_address, 0, sizeof(udp_address));
+
     int upd_socket_type = SOCK_DGRAM;
     int opt = TRUE;
 
