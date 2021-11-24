@@ -77,7 +77,7 @@ socks_destroy_(struct sock *s) {
         freeaddrinfo(s->origin_resolution);
         s->origin_resolution = 0;
     }
-    if(s->client.request.cmd_queue != NULL)
+    if (s->client.request.cmd_queue != NULL)
         free_queue(s->client.request.cmd_queue);
     free(s);
 }
@@ -146,7 +146,7 @@ socks_passive_accept(struct selector_key *key) {
         goto fail;
     }
     stats_new_connection();
-    fprintf(stdout, "New connection with client %d established", state->client_fd);
+    log(INFO, "New connection with client %d established", state->client_fd);
     return;
 
     fail:

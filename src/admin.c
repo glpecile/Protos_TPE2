@@ -19,7 +19,7 @@ void udp_read(struct selector_key *key) {
     errno = 0;
     ssize_t valread = recvfrom(key->fd, (char *) read, BUFF_SIZE, 0, (struct sockaddr *) &clntAddr, &clntAddrLen);
     if (valread <= 0) {
-        fprintf(stderr, "recvfrom() failed: %s\n", strerror(errno));
+        log(ERROR, "recvfrom() failed: %s", strerror(errno));
         exit(1);
     } else {
         buffer_write_adv(&admin_commands->read_buffer, valread);
@@ -168,9 +168,9 @@ enum options validate_options(char *to_parse) {
 
 void validate_sendto(ssize_t sent, ssize_t to_send) {
     if (sent < 0) {
-        fprintf(stderr, "sendto() failed.\n");
+        log(ERROR, "%s", "sendto() failed.");
     } else if (sent != to_send) {
-        fprintf(stderr, "sendto() sent unexpected number of bytes.\n");
+        log(ERROR, "%s", "sendto() sent unexpected number of bytes.");
     }
 }
 

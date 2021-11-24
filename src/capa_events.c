@@ -9,16 +9,16 @@
 static void check_char(struct capa *g, char write) {
     switch (write) {
         case CR:
-            if(!g->first_cr){
+            if (!g->first_cr) {
                 g->first_cr = true;
-            }else{
+            } else {
                 g->second_cr = g->dot;
             }
             break;
         case LF:
-            if(!g->first_lf){
+            if (!g->first_lf) {
                 g->first_lf = g->first_cr;
-            }else{
+            } else {
                 g->capa_finished = g->second_cr;
             }
             break;
@@ -30,6 +30,7 @@ static void check_char(struct capa *g, char write) {
             break;
     }
 }
+
 void capa_init(const unsigned tate, struct selector_key *key) {
     struct capa *d = &ATTACHMENT(key)->orig.capa;
 
@@ -47,8 +48,8 @@ void capa_init(const unsigned tate, struct selector_key *key) {
  * Se lee la respuesta al comando CAPA provista por el origin server.
  */
 unsigned capa_read(struct selector_key *key) {
-    printf("Entramos al capa_read\n");
-    printf("Soy el fd->%i\n", key->fd);
+    log(DEBUG, "%s", "Entramos al capa_read");
+    log(DEBUG, "Soy el fd->%i", key->fd);
     struct capa *d = &ATTACHMENT(key)->orig.capa;
     unsigned ret = REQUEST_ST;
     //Variables necesarias para los buffers
@@ -56,30 +57,30 @@ unsigned capa_read(struct selector_key *key) {
     size_t size_can_write = 1; // se va a leer de a 1 byte
     ssize_t bytes_read;
 
-    write = buffer_write_ptr(d->res,&size_can_write);
-    bytes_read = recv(ATTACHMENT(key)->origin_fd,(char *) write, 1,0);
+    write = buffer_write_ptr(d->res, &size_can_write);
+    bytes_read = recv(ATTACHMENT(key)->origin_fd, (char *) write, 1, 0);
 
-    if(bytes_read <= 0){
+    if (bytes_read <= 0) {
         ret = ERROR_ST;
-    }else{
-        check_char(d,(char) *write);
-        buffer_write_adv(d->res,bytes_read);
-        if(d->capa_finished){
+    } else {
+        check_char(d, (char) *write);
+        buffer_write_adv(d->res, bytes_read);
+        if (d->capa_finished) {
             //Hacemos la busqueda del string de pipelining y eso.
             //si encuentra el pipelining se setea el flag
-            uint8_t * read = buffer_read_ptr(d->res,&size_can_write);
-            if(strstr((char*) read,PIPELINING) != NULL){
-                printf("Pipelining encontrado\n");
+            uint8_t *read = buffer_read_ptr(d->res, &size_can_write);
+            if (strstr((char *) read, PIPELINING) != NULL) {
+                log(DEBUG, "%s", "Pipelining encontrado");
                 d->pipelining = true;
             }
             buffer_reset(d->res);
             selector_status ss = SELECTOR_SUCCESS;
             ss |= selector_set_interest_key(key, OP_NOOP);
-            ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd,OP_READ);
+            ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
             ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-            printf("Probando\n");
-        }else{
-            printf("Nunca entramos al capa_finished\n");
+            log(DEBUG, "%s", "Probando");
+        } else {
+            log(DEBUG, "%s", "Nunca entramos al capa_finished");
             ret = CAPA_ST;
         }
 
@@ -92,8 +93,8 @@ unsigned capa_read(struct selector_key *key) {
  * Se envia el comando CAPA al origen para determinar si acepta pipelining.
 */
 unsigned capa_send(struct selector_key *key) {
-    printf("Entramos al capa_send\n");
-    printf("Soy el fd->%i\n", key->fd);
+    log(DEBUG, "%s", "Entramos al capa_send");
+    log(DEBUG, "Soy el fd->%i", key->fd);
     const char *to_send = "CAPA\r\n";
     unsigned ret = CAPA_ST;
 
@@ -102,9 +103,9 @@ unsigned capa_send(struct selector_key *key) {
     } else {
         //seteamos el interes de este estado en read para leer la respuesta del origin
         selector_status ss = SELECTOR_SUCCESS;
-        ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd,OP_READ);
+        ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
         ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-        printf("Cambiamos de interes a %i\n", ret);
+        log(DEBUG, "Cambiamos de interes a %i", ret);
     }
     return ret;
 }

@@ -3,6 +3,7 @@
 
 #include "selector.h"
 #include "buffer.h"
+#include "logger.h"
 
 /** Estructura utilizada para el envio y response del comando CAPA al origin **/
 struct capa {

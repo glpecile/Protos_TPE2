@@ -31,14 +31,14 @@
 //}
 
 static void version(void) {
-    fprintf(stderr, "POP3 Proxy version -1.0\n"
-                    "ITBA Protocolos de Comunicación 2021/2Q -- Group 2\n"
+    fprintf(stderr, "POP3 Proxy version 0.0.0.0\n"
+                    "ITBA Protocolos de Comunicación 2021/2Q -- Grupo 2\n"
     );
 }
 
 static void usage() {
     fprintf(stderr,
-            "Usage: main [ POSIX style options ] <origin_server>\n"
+            "Usage: ./pop3filter [ POSIX style options ] <origin_server>\n"
             "\n"
             "   -e               Specifies the file where stderr is sent after the execution of the filters. By default the file is /dev/null.\n"
             "   -h               Prints help and exits.\n"

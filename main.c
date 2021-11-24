@@ -41,7 +41,7 @@ static bool done = false;
 
 static void
 sigterm_handler(const int signal) {
-    printf("Signal %d, cleaning up and exiting\n", signal);
+    log(INFO, "Signal %d, cleaning up and exiting", signal);
     done = true;
 }
 
@@ -288,8 +288,7 @@ static int initialize_server(int port) {
         err_msg = "bind failed";
         goto finally;
     }
-
-    fprintf(stdout, "UDP Listener on port %d\n", parameters->management_port);
+    log(INFO, "UDP Listener on port %d", parameters->management_port);
 
     /**
      * Creamos el socket para IPv6
@@ -305,8 +304,7 @@ static int initialize_server(int port) {
         err_msg = "Unable to create socket ipv6";
         goto finally;
     }
-
-    fprintf(stdout, "Listening on TCP port %d\n", port);
+    log(INFO, "Listening on TCP port %d", port);
 
     // man 7 ip. no importa reportar nada si falla.
     setsockopt(server_ipv6, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
@@ -336,8 +334,7 @@ static int initialize_server(int port) {
         err_msg = "Unable to create socket ipv4";
         goto finally;
     }
-
-    fprintf(stdout, "Listening on TCP port %d\n", port);
+    log(INFO, "Listening on TCP port %d", port);
 
     // man 7 ip. no importa reportar nada si falla.
     setsockopt(server_ipv4, SOL_SOCKET, SO_REUSEADDR, &(int) {1}, sizeof(int));
@@ -428,7 +425,7 @@ static int initialize_server(int port) {
         }
     }
     if (err_msg == NULL) {
-        err_msg = "closing";
+        log(INFO, "%s", "closing");
     }
 
     int ret = 0;
@@ -438,33 +435,33 @@ static int initialize_server(int port) {
      */
     finally:
     if (ss != SELECTOR_SUCCESS) {
-        fprintf(stderr, "%s: %s\n", (err_msg == NULL) ? "" : err_msg,
-                ss == SELECTOR_IO
-                ? strerror(errno)
-                : selector_error(ss));
+        log(ERROR, "%s: %s", (err_msg == NULL) ? "" : err_msg,
+            ss == SELECTOR_IO
+            ? strerror(errno)
+            : selector_error(ss));
         ret = 2;
-    } else if (err_msg) {
-        perror(err_msg);
+    } else if (err_msg != NULL) {
+        log(ERROR, "%s", err_msg)
         ret = 1;
     }
     if (selector != NULL) {
         selector_destroy(selector);
     }
-    printf("about to close the selector\n");
+    log(INFO, "%s", "about to close the selector");
     selector_close();
-    printf("about to destroy the pool\n");
+    log(INFO, "%s", "about to destroy the pool");
     socks_pool_destroy();
 
     if (server_ipv6 >= 0) {
-        printf("about to close the server_ipv6\n");
+        log(INFO, "%s", "about to close the server_ipv6");
         close(server_ipv6);
     }
     if (server_ipv4 >= 0) {
-        printf("about to close the server_ipv4\n");
+        log(INFO, "%s", "about to close the server_ipv4");
         close(server_ipv4);
     }
     if (udp_socket >= 0) {
-        printf("about to close the udp socket\n");
+        log(INFO, "%s", "about to close the udp socket");
         close(udp_socket);
     }
     if (admin != NULL) {
@@ -472,7 +469,7 @@ static int initialize_server(int port) {
     }
     free(parameters);
     close_stats();
-    printf("closing main safely...\n");
+    log(INFO, "%s", "closing main safely...");
     return ret;
 }
 

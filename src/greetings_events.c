@@ -43,8 +43,8 @@ greetings_init(const unsigned state, struct selector_key *key) {
  */
 unsigned
 greetings_read(struct selector_key *key) {
-    printf("Entramos al greetings_read\n");
-    printf("Soy el fd->%i\n", key->fd);
+    log(DEBUG, "%s", "Entramos al greetings_read");
+    log(DEBUG, "Soy el fd->%i", key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
@@ -61,7 +61,7 @@ greetings_read(struct selector_key *key) {
         //pasar al estado de write para dumpear el buffer.
         selector_status ss = SELECTOR_SUCCESS;
         ss |= selector_set_interest_key(key, OP_NOOP);
-        ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd,OP_WRITE);
+        ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
         ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
     } else {
         //Le pedimos al buffer el puntero para escribir
@@ -77,7 +77,7 @@ greetings_read(struct selector_key *key) {
                 ret = GREETINGS_ST;
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key, OP_NOOP);
-                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd,OP_WRITE);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
                 ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
                 //ret = set_to_interest(key, ret, OP_WRITE);
             }
@@ -91,8 +91,8 @@ greetings_read(struct selector_key *key) {
 
 unsigned
 greetings_write(struct selector_key *key) {
-    printf("Entramos al greetings_write\n");
-    printf("Soy el fd->%i\n",key->fd);
+    log(DEBUG, "%s", "Entramos al greetings_write");
+    log(DEBUG, "Soy el fd->%i", key->fd);
     //Nos traemos la estructura necesaria para el saludo.
     struct greetings *greetings = &ATTACHMENT(key)->orig.greet;
     unsigned ret = GREETINGS_ST;
@@ -119,7 +119,7 @@ greetings_write(struct selector_key *key) {
                 ret = CAPA_ST;
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key, OP_NOOP);
-                ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd,OP_WRITE);
+                ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_WRITE);
                 ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
             }
             buffer_read_adv(greetings->buffer, bytes_write);

@@ -62,7 +62,7 @@ request_connect(struct selector_key *key) {
     }
 
 
-    if (connect(sock,(const struct sockaddr *) &s->origin_addr, s->origin_addr_len) == -1) {
+    if (connect(sock, (const struct sockaddr *) &s->origin_addr, s->origin_addr_len) == -1) {
         if (errno == EINPROGRESS) {
             //Al ser no bloqueante si todavia no establecio la conexion... OP_NOOP->sin un interes en particular
             selector_status st = selector_set_interest_key(key, OP_NOOP);
@@ -89,7 +89,7 @@ request_connect(struct selector_key *key) {
 
     error:
     ret = ERROR_ST;
-    fprintf(stdout, "Connecting to origin server failed.\n");
+    log(ERROR, "%s", "Connecting to origin server failed.");
 
     if (sock != -1) {
         close(sock);
