@@ -90,7 +90,7 @@ request_read(struct selector_key *key) {
             size++;
             if (flag) {
                 struct cmd cmd;
-                cmd.cmd_size = size + 1 - request->lf - request->cr;
+                cmd.cmd_size = size - request->lf - request->cr;
                 memcpy(cmd.cmd, br_first, cmd.cmd_size);
                 parse_cmd(&cmd);
                 queue(request->cmd_queue, cmd);

@@ -73,12 +73,15 @@ static struct sock *socks_new(int client_fd) {
 /** realmente destruye */
 static void
 socks_destroy_(struct sock *s) {
+    printf("Destroy\n");
     if (s->origin_resolution != NULL) {
         freeaddrinfo(s->origin_resolution);
         s->origin_resolution = 0;
     }
-    if (s->client.request.cmd_queue != NULL)
+    if (s->client.request.cmd_queue != NULL) {
+        printf("Destroy queue\n");
         free_queue(s->client.request.cmd_queue);
+    }
     free(s);
 }
 

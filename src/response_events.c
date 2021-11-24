@@ -58,7 +58,7 @@ void response_init(const unsigned state, struct selector_key *key) {
     response->first_cr = false;
     response->dot = false;
     response->second_cr = false;
-    response->response_finished = true;
+    response->response_finished = false;
     response->next_cmd_multiline = false;
     response->res = &ATTACHMENT(key)->write_buffer;
 }
@@ -66,24 +66,6 @@ void response_init(const unsigned state, struct selector_key *key) {
 unsigned response_read(struct selector_key *key) {
     struct response *response = &ATTACHMENT(key)->orig.response;
     unsigned ret = RESPONSE_ST; //En principio me quedo en este estado hasta que termine de enviar toda la respuesta recibida.
-    struct cmd cmd;
-
-    if (response->response_finished) {
-        if (dequeue(ATTACHMENT(key)->client.request.cmd_queue, &cmd) > 0) {
-            response->next_cmd_multiline = cmd.multiline;
-            response->response_finished = false;
-        } else if (is_empty(ATTACHMENT(key)->client.request.cmd_queue)) {
-            //ya no hay mas elementos para sacar
-            //cambio de intereses para escribir lo que tengo
-            free_queue(ATTACHMENT(key)->client.request.cmd_queue);
-//            response->response_finished = true;
-            selector_status ss = SELECTOR_SUCCESS;
-            ss |= selector_set_interest_key(key, OP_NOOP);
-            ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
-            ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-            return ret;
-        }
-    }
 
     ssize_t bytes_read;
     size_t size_can_write;
@@ -101,20 +83,22 @@ unsigned response_read(struct selector_key *key) {
     if (bytes_read <= 0) {
         ret = ERROR_ST;
     } else {
-        buffer_write_adv(response->res, bytes_read);
-        size_t size_can_read;
-        uint8_t *aux_read = buffer_read_ptr(response->res, &size_can_read);
-        size_t count = 0;
-        while (count < size_can_read) {
-            check_char(response, (char) *aux_read);
+        ssize_t count = 0;
+        struct cmd cmd;
+        int dq = dequeue(ATTACHMENT(key)->client.request.cmd_queue, &cmd);
+        while (count < bytes_read && dq) {
+            response->next_cmd_multiline = cmd.multiline;
+            check_char(response, (char) *write);
             count++;
-            aux_read++;
+            write++;
             if (response->response_finished) {
+                buffer_write_adv(response->res, count);
                 //cambio de interes en el selector para ir a escribirle al cliente
                 selector_status ss = SELECTOR_SUCCESS;
                 ss |= selector_set_interest_key(key, OP_NOOP);
                 ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_WRITE);
                 ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
+                dq = dequeue(ATTACHMENT(key)->client.request.cmd_queue, &cmd);
             }
         }
     }
@@ -142,23 +126,17 @@ unsigned response_send(struct selector_key *key) {
             log(ERROR, "%s", "Error al enviar");
         } else {
             buffer_read_adv(response->res, bytes_write);
-            if (response->response_finished) {
-                //cambio de intereses para volver al request
-                ret = REQUEST_ST;
-                //cambio de interes en el selector
-                selector_status ss = SELECTOR_SUCCESS;
-                //dejo el origin en read por el response state
-                ss |= selector_set_interest_key(key, OP_NOOP);
-                ss |= selector_set_interest(key->s, ATTACHMENT(key)->client_fd, OP_READ);
-                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-            } else {
-                //cambio de interes en el selector para volver a leer del origen, todavia me quedan cosas.
-                selector_status ss = SELECTOR_SUCCESS;
-                //dejo el origin en read por el response state
-                ss |= selector_set_interest_key(key, OP_NOOP);
-                ss |= selector_set_interest(key->s, ATTACHMENT(key)->origin_fd, OP_READ);
-                ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
-            }
+            //cambio de intereses para volver al request
+
+            //cambio de interes en el selector
+            selector_status ss = SELECTOR_SUCCESS;
+            //dejo el origin en read por el response state
+            ss |= selector_set_interest_key(key, OP_NOOP);
+            int fd = response->response_finished ? ATTACHMENT(key)->client_fd : ATTACHMENT(key)->origin_fd;
+
+            ret = response->response_finished ? REQUEST_ST : RESPONSE_ST;
+            ss |= selector_set_interest(key->s, fd, OP_READ);
+            ret = SELECTOR_SUCCESS == ss ? ret : ERROR_ST;
         }
     }
     return ret;
